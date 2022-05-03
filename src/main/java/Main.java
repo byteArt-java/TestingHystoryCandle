@@ -6,14 +6,14 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Main {
-    private static Random random = new Random();
-    private static String pathFiles = "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\test2.txt";
+    private final static Random random = new Random();
+    private final static String pathFiles = "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\test2.txt";
 
     private static String[] allPathFiles = {
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Hour-RTS-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-RTS-190101-220430.txt",
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Hour-RTS-190101-220430.txt",
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-RTS-190101-220430.txt",
             "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Hour-Si-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-Si-190101-220430.txt"
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-Si-190101-220430.txt"
     };
 
     public static void main(String[] args) throws IOException, ParseException {
