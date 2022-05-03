@@ -44,7 +44,7 @@ public class Main {
             ConditionOpen conditionOpen = new ConditionOpen();//создание класса проверочных условий для открытия сделки
 
             ConditionClose conditionClose = new ConditionClose();//создание класса проверочных условий для закрытия сделки
-            float yields = 100000.0f;//перемення для складывания результата торговли
+            float yields = 0.0f;//перемення для складывания результата торговли
             float open = 0.0f;//цена открытия
             float close = 0.0f;//цена закрытия
 
