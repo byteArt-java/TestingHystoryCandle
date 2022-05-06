@@ -4,30 +4,42 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Main {
     private final static Random random = new Random();
-    private final static String pathFiles = "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\test2.txt";
+    private final static String pathFiles = "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Hour-SI-220310-220420.txt";
 
     private static String[] allPathFiles = {
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Hour-RTS-190101-220430.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-RTS-190101-220430.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Hour-RTS-190101-220430.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-RTS-190101-220430.txt",
             "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Hour-Si-190101-220430.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-Si-190101-220430.txt"
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\30M-Si-190101-220430.txt"
     };
 
     public static void main(String[] args) throws IOException, ParseException {
-//        long startMS = System.currentTimeMillis();
-//        for (int i = 0; i < 1000; i++) {
-//            StaticData.limitStop = random.nextInt(60) * 10;
-//            StaticData.minRP = random.nextInt(35)*10;//(minReversePrice)условие обратного движения по свече
-//            StaticData.minMove = random.nextInt(90)*10;//сколько минимально должн пройти цена от открытия до закрытия
-//            StaticData.largeMove = random.nextInt(200)*10;//сколько должно пройти, чтобы сработало 2 условие
-//            StaticData.minNakedSize = random.nextInt(20)*5;//минимальный диапазон для неголого закрытия
-//            testInternallyDays(allPathFiles);//тест внутри дня, вплоть до 4 часовых
-//        }
-//        System.out.println("Ms = " + (System.currentTimeMillis() - startMS));
-        testInternallyDays(pathFiles);//тест внутри дня, вплоть до 4 часовых
+        long startMS = System.currentTimeMillis();
+        for (int i = 0; i < 500; i++) {
+            StaticData.limitStop = random.nextInt(8) * 10 + 260;
+            StaticData.minRP = random.nextInt(35)*10;//(minReversePrice)условие обратного движения по свече
+            StaticData.minMove = random.nextInt(90)*10;//сколько минимально должн пройти цена от открытия до закрытия
+            StaticData.largeMove = random.nextInt(200)*10;//сколько должно пройти, чтобы сработало 2 условие
+            StaticData.minNakedSize = random.nextInt(20)*5;//минимальный диапазон для неголого закрытия
+            testInternallyDays(allPathFiles);//тест внутри дня, вплоть до 4 часовых
+        }
+        System.out.println("Ms = " + (System.currentTimeMillis() - startMS));
+//        testInternallyDays(pathFiles);//тест внутри дня, вплоть до 4 часовых
+    }
+
+    private static void countMaxDescendingMoney(float result){
+        if (result < 0){
+            StaticData.maxDescendingMoney = -(Math.abs(StaticData.maxDescendingMoney) + Math.abs(result));
+        }else if (result >= Math.abs(StaticData.maxDescendingMoney) && result > 0 && StaticData.maxDescendingMoney != 0) {
+            StaticData.maxDescendingMoneyList.add(StaticData.maxDescendingMoney);
+            StaticData.maxDescendingMoney = 0;
+        }else if (result > 0 && StaticData.maxDescendingMoney != 0){
+            StaticData.maxDescendingMoney = -(Math.abs(StaticData.maxDescendingMoney) - result);
+        }
     }
 
     private static void testInternallyDays(String... pathFiles) throws IOException, ParseException {
@@ -74,7 +86,10 @@ public class Main {
                             StaticData.countCandleOpenPosition = 0;
                             yields = yields + result;
                             StaticData.isOpenDeal = false;
-                            print("Доход со сделки = " + result);
+                            print("Доход со сделки = ",result);
+                            //===тут мы выстраиваем логику подсчета максимальной просадки
+                            countMaxDescendingMoney(result);
+                            //===========================================================
                         }
                         candleStack.clear();
                     }
@@ -107,7 +122,10 @@ public class Main {
                         StaticData.countCandleOpenPosition = 0;
                         yields = yields + result;
                         StaticData.isOpenDeal = false;
-                        print("Доход со сделки = " + result);
+                        print("Доход со сделки = ",result);
+                        //===тут мы выстраиваем логику подсчета максимальной просадки
+                        countMaxDescendingMoney(result);
+                        //===========================================================
                     }
                     ////Условие выхода из сделки.Метод 2 в ConditionClose.
                     if (StaticData.countCandleOpenPosition > 1 && StaticData.isOpenDeal &&
@@ -128,7 +146,10 @@ public class Main {
                         StaticData.threeMethod = 0;
                         yields = yields + result;
                         StaticData.isOpenDeal = false;
-                        print("Доход со сделки = " + result);
+                        print("Доход со сделки = ",result);
+                        //===тут мы выстраиваем логику подсчета максимальной просадки
+                        countMaxDescendingMoney(result);
+                        //===========================================================
                     }
                 }
 
@@ -146,27 +167,53 @@ public class Main {
                 }
 
             }//while end
+            //===тут мы считаем максимальную просадку
+            float f1 = 0.0f;
+            for (Float f2 : StaticData.maxDescendingMoneyList) {
+                if (f2 < f1){
+                    f1 = f2;
+                }
+            }
+            StaticData.maxDescendingMoney = 0;
+            StaticData.maxDescendingMoneyList.clear();
+            //===========================================================
+            String total;
             if (pathFile.contains("RTS")){
                 yields *= 1.45f;
-                yields *= 4.5f;
             }
-            String total = String.format("Yields = %.2f.Стоп = %.2f.minRP = %.2f.minMove = %.2f.largeMove = %.2f.minNakedSize = %.2f.Путь = %s.\n",
-                    yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60));
-            if (yields > 30000){
+            if (pathFile.contains("ED")){
+                 total = String.format("Yields = %.4f.Стоп = %.4f.minRP = %.4f.minMove = %.4f.largeMove = %.4f.minNakedSize = %.4f.Путь = %s.Макс.просадка = %.3f\n",
+                        yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1);
+            }else if (pathFile.contains("BR") || pathFile.contains("GD")){
+                total = String.format("Yields = %.2f.Стоп = %.2f.minRP = %.2f.minMove = %.2f.largeMove = %.2f.minNakedSize = %.2f.Путь = %s.Макс.просадка = %.3f\n",
+                        yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1);
+            }else {
+                total = String.format("Yields = %.0f.Стоп = %.0f.minRP = %.0f.minMove = %.0f.largeMove = %.0f.minNakedSize = %.0f.Путь = %s.Макс.просадка = %.3f\n",
+                        yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1);
+            }
+
+            if (yields > StaticData.rangeYields){
                 System.out.print(total);
                 writerFile.write(total);
                 writerFile.flush();
             }
+            yields = 0;
+
         }//конец iter файла
+        StaticData.isOpenDeal = false;
     }//test
-    private static void print(String msg){
-        if (false){
-            System.out.println(msg);
+    private static void print(String msg,float result){
+        if (true && result > 4000.0f || true && result < -4000.0f){
+            System.out.println(msg + " = " + result);
         }
+//        if (false){
+//            System.out.println(msg + " = " + result);
+//        }
     }
 
     //анализ проведенных сделок
     private static void analyzeCompletedDeals(List<Candle> listDeals){
 
     }
+
 }
