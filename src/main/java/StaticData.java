@@ -6,7 +6,7 @@ public class StaticData {
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям
 
-    public static float rangeYields = 0;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 50000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static int oneMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int twoMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
@@ -17,7 +17,8 @@ public class StaticData {
     public static float largeMove = 1730;//сколько должно пройти, чтобы сработало 2 условие//default 900
     public static float minNakedSize = 10;//минимальный диапазон для неголого закрытия//default 10
 
-    public static List<Candle> candleList = new ArrayList<>();//лист для хранения проведенных сделок
+    public static List<Deal> positiveRes = new ArrayList<>();//list для хранения проведенных положительных сделок
+    public static List<Deal> negativeRes = new ArrayList<>();//list для хранения проведенных отрицательных сделок
     public static int countCandleOpenPosition = 0;//нужна для того, чтобы изменить условие выхода после 1 пройденной свечи
     public static boolean isOpenDeal = false;//открыта ли сделка
 
