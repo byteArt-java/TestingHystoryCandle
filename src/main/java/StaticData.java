@@ -2,19 +2,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StaticData {
-    public static float limitStop = 330;//Стоп Лосс//default 270
+    public static float limitStop = 270;//Стоп Лосс//default 270
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям
 
-    public static float rangeYields = 50000;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 0;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static int oneMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int twoMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int threeMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
 
-    public static float minRP = 220;//(minReversePrice)условие обратного движения по свече//default 110
-    public static float minMove = 310;//сколько минимально должн пройти цена от открытия до закрытия//default 150
-    public static float largeMove = 1730;//сколько должно пройти, чтобы сработало 2 условие//default 900
+    public static float minRP = 110;//(minReversePrice)условие обратного движения по свече//default 110
+    public static float minMove = 150;//сколько минимально должн пройти цена от открытия до закрытия//default 150
+    public static float largeMove = 900;//сколько должно пройти, чтобы сработало 2 условие//default 900
     public static float minNakedSize = 10;//минимальный диапазон для неголого закрытия//default 10
 
     public static List<Deal> positiveRes = new ArrayList<>();//list для хранения проведенных положительных сделок

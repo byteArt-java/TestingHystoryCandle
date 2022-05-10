@@ -19,21 +19,27 @@ public class Main {
     };
 
     public static void main(String[] args) throws IOException, ParseException {
-        long startMS = System.currentTimeMillis();
-        addWarrantyToMap();
-        for (int i = 0; i < 100; i++) {
-            StaticData.limitStop = random.nextInt(8) * 10 + 260;
-            StaticData.minRP = random.nextInt(35)*10;//(minReversePrice)условие обратного движения по свече
-            StaticData.minMove = random.nextInt(90)*10;//сколько минимально должн пройти цена от открытия до закрытия
-            StaticData.largeMove = random.nextInt(200)*10;//сколько должно пройти, чтобы сработало 2 условие
-            StaticData.minNakedSize = random.nextInt(20)*5;//минимальный диапазон для неголого закрытия
-            testInternallyDays(1100000.00f,true,pathFiles);//тест внутри дня, вплоть до 4 часовых
-        }
-        System.out.println("Ms = " + (System.currentTimeMillis() - startMS));
-
+        //===========================
+//        long startMS = System.currentTimeMillis();
 //        addWarrantyToMap();
-//        testInternallyDays(pathFiles);//тест внутри дня, вплоть до 4 часовых
+//        for (int i = 0; i < 400000; i++) {
+//            StaticData.limitStop = random.nextInt(50) * 10 + 10;
+//            StaticData.minRP = random.nextInt(50)*10 + 10;//(minReversePrice)условие обратного движения по свече
+//            StaticData.minMove = random.nextInt(150)*10 + 10;//сколько минимально должн пройти цена от открытия до закрытия
+//            StaticData.largeMove = random.nextInt(400)*10 + 10;//сколько должно пройти, чтобы сработало 2 условие
+//            StaticData.minNakedSize = random.nextInt(20)*5 + 5;//минимальный диапазон для неголого закрытия
+//            testInternallyDays(1100000.00f,false,allPathFiles);//тест внутри дня, вплоть до 4 часовых
+//        }
+//        System.out.println("Ms = " + (System.currentTimeMillis() - startMS));
+        //=============================
 
+        //================================
+        addWarrantyToMap();
+        for (int i = 1; i < 24; i++) {
+            testInternallyDays(1100000.00f,i,true,allPathFiles);//тест внутри дня, вплоть до 4 часовых
+            System.out.println("i = " + i);
+        }
+        //=================================
     }
 
     private static void countMaxDescendingMoney(float result){
@@ -48,10 +54,11 @@ public class Main {
     }
 
     private static void addWarrantyToMap(){
+//        mapWarrantyProvision.put("SI",10483.00f);//заглушка чтобы быстрее тестировать
         QueryWarrantyProvision.getWarranty(mapWarrantyProvision,"RI","SF","ED","SI");
     }
 
-    private static void testInternallyDays(float capital,boolean compoundInterest,String... pathFiles) throws IOException, ParseException {
+    private static void testInternallyDays(float capital,int spanInterval,boolean compoundInterest,String... pathFiles) throws IOException, ParseException {
         BufferedWriter writerFile = new BufferedWriter(new FileWriter("F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\totalData.txt",true));
         for (String pathFile : pathFiles) {//запуск программы для каждого загруженного файла с историч данными
             if (!Files.exists(Paths.get(pathFile))){
@@ -60,7 +67,7 @@ public class Main {
             }
             //==подготавливаем данные для склыдвания результата сделок в сложный процент
             float warrantyProvision = 0.0f;
-            String codeForWarrantyProvision = Paths.get(pathFile).getFileName().toString().substring(0,2);//код для получения значения гарантийного обеспечения из Map
+            String codeForWarrantyProvision = Paths.get(pathFile).getFileName().toString().substring(0,2).toUpperCase();//код для получения значения гарантийного обеспечения из Map
             float capitalCompoundInterest = 0.0f;
             if (compoundInterest){
                 capitalCompoundInterest = capital;
@@ -76,15 +83,23 @@ public class Main {
 
             ConditionClose conditionClose = new ConditionClose();//создание класса проверочных условий для закрытия сделки
             float yields = 0.0f;//перемення для складывания результата торговли
-
+            float yieldsCompoundInterest = 0.0f;//перемення для складывания результата торговли сложного процента и с учетом spanMonth
+            float countContractsCompoundInterest = capital / mapWarrantyProvision.get(codeForWarrantyProvision);//кол.контрактов для сложного процента и с учетом spanMonth
+            final float countContractsOrdinary = capital / mapWarrantyProvision.get(codeForWarrantyProvision);//кол.контрактов для yields
             float open = 0.0f;//цена открытия
             float close = 0.0f;//цена закрытия
 
+            long totalMonth = 0;
+
+            Date dateFirstCandle = null;//дата когда считываем первую свечу
+            boolean isFirstCandle = true;
+
+            //=================временная дата для сохранения даты открытия и добавл в массив Static.positiveRes
+            Date openDeal = null;
+            //=================================================================================================
+
             while ((line = in.readLine()) != null){
                 String[] array = line.split("\\s");
-                //=================временная дата для сохранения даты открытия и добавл в массив Static.positiveRes
-                Date openDeal = null;
-                //=================================================================================================
 
                 //==преобразование в Дату и Время
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
@@ -92,6 +107,15 @@ public class Main {
                         array[2].substring(6,8),array[3].substring(0,2),array[3].substring(2,4),array[3].substring(4,6)));
 
                 Candle candle = new Candle(array[1], date, Float.parseFloat(array[4]), Float.parseFloat(array[5]), Float.parseFloat(array[6]), Float.parseFloat(array[7]), Integer.parseInt(array[8]));
+
+                if (isFirstCandle){
+//                    totalMonth = 2592000000L * spanInterval;//промежуток месяц
+//                    totalMonth = 86400000L * spanInterval;//промежуток день
+                    totalMonth = 604800000L * spanInterval;//промежуток неделя
+                    dateFirstCandle = candle.getDateClose();
+                    dateFirstCandle.setTime(dateFirstCandle.getTime() + totalMonth);
+                    isFirstCandle = false;
+                }
 
                 //====тут очищаем стэк если начался новый день, и закрываем позицию за пред день, если не были закрыты
                 if (candleStack.size() > 0){
@@ -109,21 +133,26 @@ public class Main {
                             yields = yields + result;
                             StaticData.isOpenDeal = false;
                             print("Доход со сделки = ",result);
-                            //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации
-                            if (compoundInterest){
-                                float countContracts = (float) Math.floor(capitalCompoundInterest / warrantyProvision);
-                                float returnNet = countContracts * result;
-                                capitalCompoundInterest = returnNet > 0 ? capitalCompoundInterest + returnNet : capitalCompoundInterest - Math.abs(returnNet);
+                            //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации  и spanMonth
+                            if (compoundInterest && candle.getDateClose().after(dateFirstCandle)){
+                                capitalCompoundInterest = capitalCompoundInterest + yieldsCompoundInterest;
+                                countContractsCompoundInterest = (float) Math.floor(capitalCompoundInterest / warrantyProvision);
+                                yieldsCompoundInterest = 0;
+                                dateFirstCandle.setTime(dateFirstCandle.getTime() + totalMonth);
+                                float returnNet = countContractsCompoundInterest * result;
+                                yieldsCompoundInterest += returnNet;
+                            }else if (compoundInterest){
+                                yieldsCompoundInterest = (result * countContractsCompoundInterest) + yieldsCompoundInterest;
                             }
                             //=============================================================================
 
                             //===тут мы выстраиваем логику подсчета максимальной просадки
-                            countMaxDescendingMoney(result);
+                            countMaxDescendingMoney(result * countContractsOrdinary);
                             //===========================================================
                             //===кладем результат сделки в Лист
                             if (result > 0){
                                 StaticData.positiveRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                            }else {
+                            }else if (result < 0){
                                 StaticData.negativeRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
                             }
                             //========================================================================
@@ -164,14 +193,19 @@ public class Main {
                         StaticData.isOpenDeal = false;
                         print("Доход со сделки = ",result);
                         //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации
-                        if (compoundInterest){
-                            float countContracts = (float) Math.floor(capitalCompoundInterest / warrantyProvision);
-                            float returnNet = countContracts * result;
-                            capitalCompoundInterest = returnNet > 0 ? capitalCompoundInterest + returnNet : capitalCompoundInterest - Math.abs(returnNet);
+                        if (compoundInterest && candle.getDateClose().after(dateFirstCandle)){
+                            capitalCompoundInterest = capitalCompoundInterest + yieldsCompoundInterest;
+                            countContractsCompoundInterest = (float) Math.floor(capitalCompoundInterest / warrantyProvision);
+                            yieldsCompoundInterest = 0;
+                            dateFirstCandle.setTime(dateFirstCandle.getTime() + totalMonth);
+                            float returnNet = countContractsCompoundInterest * result;
+                            yieldsCompoundInterest += returnNet;
+                        }else if (compoundInterest){
+                            yieldsCompoundInterest = (result * countContractsCompoundInterest) + yieldsCompoundInterest;
                         }
                         //=============================================================================
                         //===тут мы выстраиваем логику подсчета максимальной просадки
-                        countMaxDescendingMoney(result);
+                        countMaxDescendingMoney(result * countContractsOrdinary);
                         //===========================================================
                         //===кладем результат сделки в Лист
                         if (result > 0){
@@ -200,14 +234,19 @@ public class Main {
                         StaticData.isOpenDeal = false;
                         print("Доход со сделки = ",result);
                         //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации
-                        if (compoundInterest){
-                            float countContracts = (float) Math.floor(capitalCompoundInterest / warrantyProvision);
-                            float returnNet = countContracts * result;
-                            capitalCompoundInterest = returnNet > 0 ? capitalCompoundInterest + returnNet : capitalCompoundInterest - Math.abs(returnNet);
+                        if (compoundInterest && candle.getDateClose().after(dateFirstCandle)){
+                            capitalCompoundInterest = capitalCompoundInterest + yieldsCompoundInterest;
+                            countContractsCompoundInterest = (float) Math.floor(capitalCompoundInterest / warrantyProvision);
+                            yieldsCompoundInterest = 0;
+                            dateFirstCandle.setTime(dateFirstCandle.getTime() + totalMonth);
+                            float returnNet = countContractsCompoundInterest * result;
+                            yieldsCompoundInterest += returnNet;
+                        }else if (compoundInterest){
+                            yieldsCompoundInterest = (result * countContractsCompoundInterest) + yieldsCompoundInterest;
                         }
                         //=============================================================================
                         //===тут мы выстраиваем логику подсчета максимальной просадки
-                        countMaxDescendingMoney(result);
+                        countMaxDescendingMoney(result * countContractsOrdinary);
                         //===========================================================
                         //===кладем результат сделки в Лист
                         if (result > 0){
@@ -233,6 +272,39 @@ public class Main {
                 }
 
             }//while end
+            //==если в конце сделка осталась открыта, то нужно ее закрыть и результат последней сделки прибавить к общему
+            if (StaticData.isOpenDeal){
+                float result = 0.0f;
+                if (StaticData.isBuy){
+                    close = candleStack.peek().getClose();
+                    result = (close - open);
+                }else {
+                    close = candleStack.peek().getClose();
+                    result = (open - close);
+                }
+                StaticData.countCandleOpenPosition = 0;
+                yields = yields + result;
+                StaticData.isOpenDeal = false;
+                print("Доход со сделки = ",result);
+                //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации  и spanMonth
+                yieldsCompoundInterest = (result * countContractsCompoundInterest) + yieldsCompoundInterest;
+                capitalCompoundInterest = (capitalCompoundInterest + yieldsCompoundInterest) - capital;
+                //=============================================================================
+
+                //===тут мы выстраиваем логику подсчета максимальной просадки
+                countMaxDescendingMoney(result * countContractsOrdinary);
+                //===========================================================
+                //===кладем результат сделки в Лист
+                if (result > 0){
+                    StaticData.positiveRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
+                }else if (result < 0){
+                    StaticData.negativeRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
+                }
+                //========================================================================
+            }
+            candleStack.clear();
+            //===========================================================================================================
+
             //===тут мы считаем максимальную просадку
             float f1 = 0.0f;
             for (Float f2 : StaticData.maxDescendingMoneyList) {
@@ -244,13 +316,12 @@ public class Main {
             StaticData.maxDescendingMoneyList.clear();
             //===========================================================
             StringBuilder total = new StringBuilder();
-            if (pathFile.contains("RTS")){
+            if (pathFile.contains("RI")){
                 yields *= 1.45f;
             }
 
-            //===умножение на количество контрактов, который позволяет капитал в зависимости от гарантийного обеспечения
-            float countContracts = capital / mapWarrantyProvision.get(codeForWarrantyProvision);
-            yields = yields * countContracts;
+            //===умножение на количество контрактов, который не учитывает сложный процент
+            yields = yields * countContractsOrdinary;
             //==========================================================================================================
 
             //===подсчет средней прибыли и убытка на сделку из positiveRes List и negativeRes List
@@ -271,7 +342,6 @@ public class Main {
 
             //==вычитываем начальный капитал из заработанного, чтобы получит чистую прибыль, если прибыль с учетом капитализации
             if (compoundInterest){
-                capitalCompoundInterest = capitalCompoundInterest - capital;
                 total.append(String.format(" Yields с учетом кол. контрактов и капитализации = %.3f.\n",capitalCompoundInterest));
             }
             //==================================================================================================================
@@ -285,7 +355,6 @@ public class Main {
             StaticData.positiveRes.clear();
             StaticData.negativeRes.clear();
         }//конец iter файла
-        StaticData.isOpenDeal = false;
     }//test
     private static void print(String msg,float result){
         if (true && result > 4000.0f || true && result < -4000.0f){
