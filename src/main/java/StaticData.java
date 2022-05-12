@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class StaticData {
@@ -6,7 +7,7 @@ public class StaticData {
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям
 
-    public static float rangeYields = 0;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 17260000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static int oneMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int twoMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
@@ -24,4 +25,9 @@ public class StaticData {
 
     public static List<Float> maxDescendingMoneyList = new ArrayList<>();//максимальная просадка
     public static float maxDescendingMoney = 0;//максимальная просадка
+
+    public static Date dateForIntervalYields = new Date();//дата когда считываем первую свечу для отображения доходности за опред интервал
+    public static boolean isFirstCandleYields = true;
+    public static long totalIntervalYields = 0;
+    public static float tempYields = 0;//переменная доходности, которя учитывает разницу доходности, так как основаня переменная yields постоянно возрастает
 }
