@@ -7,7 +7,7 @@ public class StaticData {
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям
 
-    public static float rangeYields = 17260000;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 0;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static int oneMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int twoMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
@@ -28,6 +28,10 @@ public class StaticData {
 
     public static Date dateForIntervalYields = new Date();//дата когда считываем первую свечу для отображения доходности за опред интервал
     public static boolean isFirstCandleYields = true;
-    public static long totalIntervalYields = 0;
     public static float tempYields = 0;//переменная доходности, которя учитывает разницу доходности, так как основаня переменная yields постоянно возрастает
+
+    public static int countFailSequence = 0;//переменная которая считает, максимальное количество неудачнх сделок подряд
+    public static int tempFailSequence = 0;//переменная вспомогательная
+    public static boolean isFirstFailSequence = false;//перменная для того чтобы правильно отображать начало нуданых сделок
+    public static List<Integer> countFailSequenceList = new ArrayList<>();//лист чтобы получить среднюю последов неудачных сделок
 }

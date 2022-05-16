@@ -13,8 +13,9 @@ public class Main {
     private static String[] allPathFiles = {
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-Hour-190101-220430.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-30M-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-190101-220430.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI-Hour-110101-220506.txt"
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-190101-220430.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI-Hour-110101-220506.txt"
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-30M-190101-220430.txt"
     };
 
@@ -41,12 +42,12 @@ public class Main {
         //================================
         long startMS = System.currentTimeMillis();
         addWarrantyToMap();
-        StaticData.limitStop = 50;
-        StaticData.minRP = 130;//(minReversePrice)условие обратного движения по свече
-        StaticData.minMove = 10;//сколько минимально должн пройти цена от открытия до закрытия
-        StaticData.largeMove = 260;//сколько должно пройти, чтобы сработало 2 условие
-        StaticData.minNakedSize = 15;//минимальный диапазон для неголого закрытия
-        testInternallyDays(1100000.00f,1,false,"M",1,true,allPathFiles);
+//        StaticData.limitStop = 50;
+//        StaticData.minRP = 130;//(minReversePrice)условие обратного движения по свече
+//        StaticData.minMove = 10;//сколько минимально должн пройти цена от открытия до закрытия
+//        StaticData.largeMove = 260;//сколько должно пройти, чтобы сработало 2 условие
+//        StaticData.minNakedSize = 15;//минимальный диапазон для неголого закрытия
+        testInternallyDays(1100000.00f,1,false,"M",1,false,allPathFiles);
         System.out.println("Ms = " + (System.currentTimeMillis() - startMS));
         //=================================
     }
@@ -147,6 +148,10 @@ public class Main {
                                 close = candleStack.peek().getClose();
                                 result = (open - close);
                             }
+                            //===логика максимальных неудачных последовательных сделок
+                            analyzeMaxFailDeals(candleStack,result,candle);
+                            //========================================================
+
                             StaticData.countCandleOpenPosition = 0;
                             yields = yields + result;
                             StaticData.isOpenDeal = false;
@@ -203,6 +208,10 @@ public class Main {
                             close = candle.getOpen() + StaticData.limitStop;
                             result = (open - close);
                         }
+                        //===логика максимальных неудачных последовательных сделок
+                        analyzeMaxFailDeals(candleStack,result,candle);
+                        //========================================================
+
                         StaticData.oneMethod = 0;
                         StaticData.twoMethod = 0;
                         StaticData.threeMethod = 0;
@@ -245,6 +254,10 @@ public class Main {
                             result = (open - close);
                             StaticData.countCandleOpenPosition = 0;
                         }
+                        //===логика максимальных неудачных последовательных сделок
+                        analyzeMaxFailDeals(candleStack,result,candle);
+                        //========================================================
+
                         StaticData.oneMethod = 0;
                         StaticData.twoMethod = 0;
                         StaticData.threeMethod = 0;
@@ -347,15 +360,26 @@ public class Main {
             double optionalNeg = (StaticData.negativeRes.stream().mapToDouble(Deal::getYields).sum() / StaticData.negativeRes.size());
             //====================================================================================
 
+            //===среднее число последовательных неудачных сделок
+            float averageFailSequence = 0;
+            for (int i = 0; i < StaticData.countFailSequenceList.size(); i++) {
+                if (StaticData.countFailSequenceList.get(i) > 0){
+                    averageFailSequence = averageFailSequence + StaticData.countFailSequenceList.get(i);
+                }
+            }
+            averageFailSequence = averageFailSequence / StaticData.countFailSequenceList.size();
+            //==================================================
+            System.out.println(Arrays.toString(new List[]{StaticData.countFailSequenceList}));
+
             if (pathFile.contains("ED")){
-                 total.append(String.format("Yields = %.4f. Стоп = %.4f. minRP = %.4f. minMove = %.4f. largeMove = %.4f. minNakedSize = %.4f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.\n",
-                         yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg));
+                 total.append(String.format("Yields = %.4f. Стоп = %.4f. minRP = %.4f. minMove = %.4f. largeMove = %.4f. minNakedSize = %.4f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.Максимальное кол. неудачных сделок = %d.Среднее количество неудачных сделок = %.3f.\n",
+                         yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg,StaticData.countFailSequence,averageFailSequence));
             }else if (pathFile.contains("BR") || pathFile.contains("GD")){
-                total.append(String.format("Yields = %.2f. Стоп = %.2f. minRP = %.2f. minMove = %.2f. largeMove = %.2f. minNakedSize = %.2f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.\n",
-                        yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg));
+                total.append(String.format("Yields = %.2f. Стоп = %.2f. minRP = %.2f. minMove = %.2f. largeMove = %.2f. minNakedSize = %.2f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.Максимальное кол. неудачных сделок = %d.Среднее количество неудачных сделок = %.3f.\n",
+                        yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg,StaticData.countFailSequence,averageFailSequence));
             }else {
-                total.append(String.format("Yields = %.0f. Стоп = %.0f. minRP = %.0f. minMove = %.0f. largeMove = %.0f. minNakedSize = %.0f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.\n",
-                        yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg));
+                total.append(String.format("Yields = %.0f. Стоп = %.0f. minRP = %.0f. minMove = %.0f. largeMove = %.0f. minNakedSize = %.0f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.Максимальное кол. неудачных сделок = %d.Среднее количество неудачных сделок = %.3f.\n",
+                        yields,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.minNakedSize,pathFile.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg,StaticData.countFailSequence,averageFailSequence));
             }
 
             //==вычитываем начальный капитал из заработанного, чтобы получит чистую прибыль, если прибыль с учетом капитализации
@@ -372,6 +396,8 @@ public class Main {
             yields = 0;
             StaticData.positiveRes.clear();
             StaticData.negativeRes.clear();
+            StaticData.countFailSequence = 0;
+            StaticData.tempFailSequence = 0;
         }//конец iter файла
     }//test
     private static void print(String msg,float result){
@@ -419,6 +445,28 @@ public class Main {
     //анализ проведенных сделок
     private static void analyzeCompletedDeals(List<Candle> listDeals){
 
+    }
+
+    private static void analyzeMaxFailDeals(Stack<Candle> stack,float result,Candle candle){
+        if (result < 0){
+            StaticData.tempFailSequence++;
+        }
+        if (StaticData.tempFailSequence == 1 && !StaticData.isFirstFailSequence){
+            StaticData.isFirstFailSequence = true;
+            System.out.println("from " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+        }
+        if (result > 0 && StaticData.tempFailSequence != 0 && StaticData.tempFailSequence >= StaticData.countFailSequence){
+            StaticData.countFailSequenceList.add(StaticData.tempFailSequence);
+            StaticData.countFailSequence = StaticData.tempFailSequence;
+            StaticData.isFirstFailSequence = false;
+            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+            StaticData.tempFailSequence = 0;
+        }else if (result > 0 && StaticData.tempFailSequence < StaticData.countFailSequence){
+            StaticData.countFailSequenceList.add(StaticData.tempFailSequence);
+            StaticData.isFirstFailSequence = false;
+            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+            StaticData.tempFailSequence = 0;
+        }
     }
 
 }
