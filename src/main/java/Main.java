@@ -13,9 +13,9 @@ public class Main {
     private static String[] allPathFiles = {
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-Hour-190101-220430.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-30M-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-190101-220430.txt",
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-190101-220430.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220422-220515.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI-Hour-110101-220506.txt"
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-30M-190101-220430.txt"
     };
@@ -48,7 +48,7 @@ public class Main {
 //        StaticData.minMove = 10;//сколько минимально должн пройти цена от открытия до закрытия
 //        StaticData.largeMove = 260;//сколько должно пройти, чтобы сработало 2 условие
 //        StaticData.minNakedSize = 15;//минимальный диапазон для неголого закрытия
-        testInternallyDays(1100000.00f,1,false,"M",1,false,allPathFiles);
+        testInternallyDays(1100000.00f,1,true,"M",1,true,allPathFiles);
         System.out.println("Ms = " + (System.currentTimeMillis() - startMS));
         //=================================
     }
@@ -66,6 +66,7 @@ public class Main {
 
     private static void addWarrantyToMap(){
         mapWarrantyProvision.put("SI",10483.00f);//заглушка чтобы быстрее тестировать
+        mapWarrantyProvision.put("RI",68950.00f);//заглушка чтобы быстрее тестировать
 //        QueryWarrantyProvision.getWarranty(mapWarrantyProvision,"RI","SF","ED","SI");
     }
 
