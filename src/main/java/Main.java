@@ -13,8 +13,9 @@ public class Main {
     private static String[] allPathFiles = {
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-Hour-190101-220430.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-30M-190101-220430.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-190101-220430.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220422-220515.txt",
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI-Hour-110101-220506.txt"
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-30M-190101-220430.txt"
     };
@@ -28,13 +29,13 @@ public class Main {
         //===========================
 //        long startMS = System.currentTimeMillis();
 //        addWarrantyToMap();
-//        for (int i = 0; i < 5000; i++) {
+//        for (int i = 0; i < 20000; i++) {
 //            StaticData.limitStop = random.nextInt(50) * 10 + 10;
 //            StaticData.minRP = random.nextInt(50)*10 + 10;//(minReversePrice)условие обратного движения по свече
 //            StaticData.minMove = random.nextInt(150)*10 + 10;//сколько минимально должн пройти цена от открытия до закрытия
 //            StaticData.largeMove = random.nextInt(400)*10 + 10;//сколько должно пройти, чтобы сработало 2 условие
 //            StaticData.minNakedSize = random.nextInt(20)*5 + 5;//минимальный диапазон для неголого закрытия
-//            testInternallyDays(1100000.00f,1,false,allPathFiles);//тест внутри дня, вплоть до 4 часовых
+//            testInternallyDays(1100000.00f,1,false,"M",1,false,allPathFiles);//тест внутри дня, вплоть до 4 часовых
 //        }
 //        System.out.println("Ms = " + (System.currentTimeMillis() - startMS) + ".Minute = " + ((System.currentTimeMillis() - startMS) / 1000) / 60);
         //=============================
@@ -131,8 +132,9 @@ public class Main {
 //                    totalMonth = 2592000000L * spanInterval;//промежуток месяц
 //                    totalMonth = 86400000L * spanInterval;//промежуток день
                     totalIntervalCompoundInterest = 604800000L * spanInterval;//промежуток неделя
-                    dateFirstCandle = candle.getDateClose();
-                    dateFirstCandle.setTime(dateFirstCandle.getTime() + totalIntervalCompoundInterest);
+                    long tempDate = candle.getDateClose().getTime();
+                    dateFirstCandle = new Date();
+                    dateFirstCandle.setTime(tempDate + totalIntervalCompoundInterest);
                     isFirstCandle = false;
                 }
 
@@ -369,7 +371,7 @@ public class Main {
             }
             averageFailSequence = averageFailSequence / StaticData.countFailSequenceList.size();
             //==================================================
-            System.out.println(Arrays.toString(new List[]{StaticData.countFailSequenceList}));
+//            System.out.println(Arrays.toString(new List[]{StaticData.countFailSequenceList}));
 
             if (pathFile.contains("ED")){
                  total.append(String.format("Yields = %.4f. Стоп = %.4f. minRP = %.4f. minMove = %.4f. largeMove = %.4f. minNakedSize = %.4f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.Максимальное кол. неудачных сделок = %d.Среднее количество неудачных сделок = %.3f.\n",
@@ -384,7 +386,7 @@ public class Main {
 
             //==вычитываем начальный капитал из заработанного, чтобы получит чистую прибыль, если прибыль с учетом капитализации
             if (isShowCompoundInterest){
-                total.append(String.format(" Yields с учетом кол. контрактов и капитализации = %.3f.\n",capitalCompoundInterest));
+                total.append(String.format(" Yields с учетом кол. контрактов и капитализации = %.3f.\n",(capitalCompoundInterest + yieldsCompoundInterest) - capital));
             }
             //==================================================================================================================
 
@@ -453,18 +455,18 @@ public class Main {
         }
         if (StaticData.tempFailSequence == 1 && !StaticData.isFirstFailSequence){
             StaticData.isFirstFailSequence = true;
-            System.out.println("from " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+//            System.out.println("from " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
         }
         if (result > 0 && StaticData.tempFailSequence != 0 && StaticData.tempFailSequence >= StaticData.countFailSequence){
             StaticData.countFailSequenceList.add(StaticData.tempFailSequence);
             StaticData.countFailSequence = StaticData.tempFailSequence;
             StaticData.isFirstFailSequence = false;
-            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+//            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
             StaticData.tempFailSequence = 0;
         }else if (result > 0 && StaticData.tempFailSequence < StaticData.countFailSequence){
             StaticData.countFailSequenceList.add(StaticData.tempFailSequence);
             StaticData.isFirstFailSequence = false;
-            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+//            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
             StaticData.tempFailSequence = 0;
         }
     }

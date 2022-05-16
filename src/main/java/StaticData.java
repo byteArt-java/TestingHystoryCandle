@@ -7,7 +7,7 @@ public class StaticData {
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям
 
-    public static float rangeYields = 0;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = -500000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static int oneMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int twoMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
