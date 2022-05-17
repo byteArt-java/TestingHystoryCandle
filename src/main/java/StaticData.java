@@ -3,6 +3,9 @@ import java.util.Date;
 import java.util.List;
 
 public class StaticData {
+    public static int limitFailSequence = 0;//Лимит по которому ограничивается откытие сделок, если прошло до этого 2 неудачные сделки
+    public static float yieldsLimitFailSequence = 0;//переменная кот.учитывает доходность с условием не входить если прошли 2 неудачные сделки
+
     public static float limitStop = 270;//Стоп Лосс//default 270
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям

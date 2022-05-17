@@ -176,11 +176,7 @@ public class Main {
                             countMaxDescendingMoney(result * countContractsOrdinary);
                             //===========================================================
                             //===кладем результат сделки в Лист
-                            if (result > 0){
-                                StaticData.positiveRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                            }else if (result < 0){
-                                StaticData.negativeRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                            }
+                            posAndNegList(result,openDeal,candleStack,open,close);
                             //========================================================================
                         }
                         candleStack.clear();
@@ -238,11 +234,7 @@ public class Main {
                         countMaxDescendingMoney(result * countContractsOrdinary);
                         //===========================================================
                         //===кладем результат сделки в Лист
-                        if (result > 0){
-                            StaticData.positiveRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                        }else {
-                            StaticData.negativeRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                        }
+                        posAndNegList(result,openDeal,candleStack,open,close);
                         //========================================================================
                     }
                     ////Условие выхода из сделки.Метод 2 в ConditionClose.
@@ -283,11 +275,7 @@ public class Main {
                         countMaxDescendingMoney(result * countContractsOrdinary);
                         //===========================================================
                         //===кладем результат сделки в Лист
-                        if (result > 0){
-                            StaticData.positiveRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                        }else {
-                            StaticData.negativeRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                        }
+                        posAndNegList(result,openDeal,candleStack,open,close);
                         //========================================================================
                     }
                 }
@@ -329,11 +317,7 @@ public class Main {
                 countMaxDescendingMoney(result * countContractsOrdinary);
                 //===========================================================
                 //===кладем результат сделки в Лист
-                if (result > 0){
-                    StaticData.positiveRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                }else if (result < 0){
-                    StaticData.negativeRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
-                }
+                posAndNegList(result,openDeal,candleStack,open,close);
                 //========================================================================
             }
             candleStack.clear();
@@ -401,6 +385,9 @@ public class Main {
             StaticData.negativeRes.clear();
             StaticData.countFailSequence = 0;
             StaticData.tempFailSequence = 0;
+
+            int total2 = (int) (StaticData.yieldsLimitFailSequence * countContractsOrdinary);
+            System.out.println(total2 + " StaticData.yieldsLimitFailSequence");
         }//конец iter файла
     }//test
     private static void print(String msg,float result){
@@ -469,6 +456,26 @@ public class Main {
             StaticData.isFirstFailSequence = false;
 //            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
             StaticData.tempFailSequence = 0;
+        }
+    }
+
+    private static void posAndNegList(float result,Date openDeal,Stack<Candle> candleStack,float open,float close){
+        if (result > 0){
+            if (StaticData.limitFailSequence >= 1){
+                StaticData.limitFailSequence = 0;
+            }else {
+                StaticData.yieldsLimitFailSequence = StaticData.yieldsLimitFailSequence + result;
+                StaticData.limitFailSequence = 0;
+            }
+            StaticData.positiveRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
+        }else if (result < 0){
+            if (StaticData.limitFailSequence >= 1){
+
+            }else {
+                StaticData.yieldsLimitFailSequence = StaticData.yieldsLimitFailSequence + result;
+            }
+            StaticData.limitFailSequence++;
+            StaticData.negativeRes.add(new Deal(openDeal,candleStack.peek().getDateClose(),result,open,close,StaticData.isBuy));
         }
     }
 
