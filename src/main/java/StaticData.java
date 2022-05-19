@@ -1,21 +1,28 @@
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Stack;
 
 public class StaticData {
-    public static int limitFailSequence = 0;//Лимит по которому ограничивается откытие сделок, если прошло до этого 2 неудачные сделки
-    public static float yieldsLimitFailSequence = 0;//переменная кот.учитывает доходность с условием не входить если прошли 2 неудачные сделки
+    public static Stack<Candle> candleStack = new Stack<>();//стэк для хранения свечей внутри дня
+    public static float yields = 0.0f;//перемення для складывания результата торговли
+    public static List<Float> commonListDeals = new ArrayList<>();//лист для всех сделок последовтельно
+    public static float open = 0.0f;//цена открытия
+    public static float close = 0.0f;//цена закрытия
+    public static Date openDeal = null;//временная дата для сохранения даты открытия и добавл в массив Static.positiveRes
 
-    public static float limitStop = 270;//Стоп Лосс//default 270
+    public static int currentFailSequence = 0;//Лимит по которому ограничивается откытие сделок, если прошло до этого 2 неудачные сделки
+    public static float yieldsLimitFailSequence = 0;//переменная кот.учитывает доходность с условием не входить если прошли 2 неудачные сделки
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям
 
-    public static float rangeYields = -500000;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 2800000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static int oneMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int twoMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
     public static int threeMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
 
+    public static float limitStop = 270;//Стоп Лосс//default 270
     public static float minRP = 110;//(minReversePrice)условие обратного движения по свече//default 110
     public static float minMove = 150;//сколько минимально должн пройти цена от открытия до закрытия//default 150
     public static float largeMove = 900;//сколько должно пройти, чтобы сработало 2 условие//default 900
@@ -37,4 +44,12 @@ public class StaticData {
     public static int tempFailSequence = 0;//переменная вспомогательная
     public static boolean isFirstFailSequence = false;//перменная для того чтобы правильно отображать начало нуданых сделок
     public static List<Integer> countFailSequenceList = new ArrayList<>();//лист чтобы получить среднюю последов неудачных сделок
+
+    public static boolean isFirstCandle = true;//первая свеча от которой мы отсчитываем период, для реализации сложного процента
+    public static Date dateFirstCandle = new Date();//дата когда считываем первую свечу для сложного процента
+    public static float capitalCompoundInterest = 0;//капитал для реализации сложного процента
+    public static float countContractsCompoundInterest = 0;//кол контрактов для реализации сложного процента
+    public static float yieldsCompoundInterest = 0;//доходность для реализации сложного процента
+    public static long totalIntervalCompoundInterest = 0;//интервал, по которому нужно пересчитать количество контрактов
+
 }
