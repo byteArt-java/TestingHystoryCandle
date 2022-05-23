@@ -19,10 +19,13 @@ public class ConditionClose {
         }
         return false;
     }
-    private boolean conditionThree(Stack<Candle> stack,Candle candle){//условие выхода за середину, большой свечи
+    //условие выхода за середину, большой свечи, параметр StaticData.conditionExitLargeCandle, может быть рандомным
+    private boolean conditionThree(Stack<Candle> stack,Candle candle){
+//        stack.peek().getClose() - StaticData.conditionExitLargeCandle
         if (candle.getLow() < ((stack.peek().getClose() + stack.peek().getOpen()) / 2) && StaticData.isBuy && StaticData.isOpenDeal){
             return true;
-        }else if (candle.getHigh() > ((stack.peek().getOpen() + stack.peek().getClose()) / 2) && !StaticData.isBuy && StaticData.isOpenDeal){
+//            stack.peek().getOpen() - StaticData.conditionExitLargeCandle
+        }else if (candle.getHigh() > ((stack.peek().getClose() + stack.peek().getOpen()) / 2) && !StaticData.isBuy && StaticData.isOpenDeal){
             return true;
         }
         return false;
