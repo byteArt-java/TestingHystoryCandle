@@ -17,19 +17,22 @@ public class StaticData {
 
     public static boolean isBuy = true;//Покупка или продажа по откртымы позициям
 
-    public static float rangeYields = 5000000;//предел прибыли, после которого идет вывод на экран и запись в файл
-
-    public static int oneMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
-    public static int twoMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
-    public static int threeMethod = 0;//маркеры дают понять, по каким методам выходить в ConditionClose при первой попытке,устанавливаются в ConditionOpen
-
-    public static float limitStop = 270;//Стоп Лосс//default 270
-    public static float minRP = 110;//(minReversePrice)условие обратного движения по свече//default 110
-    public static float minMove = 150;//сколько минимально должн пройти цена от открытия до закрытия//default 150
-    public static float largeMove = 900;//сколько должно пройти, чтобы сработало 2 условие//default 900
+    public static float limitStop = 94;//Стоп Лосс//default 94
+    public static float minRP = 100;//(minReversePrice)условие обратного движения по свече//default 100
+    public static float minMove = 20;//сколько минимально должн пройти цена от открытия до закрытия//default 20
+    public static float largeMove = 980;//сколько должно пройти, чтобы сработало 2 условие//default 980
     public static float minNakedSize = 10;//минимальный диапазон для неголого закрытия//default 10
     public static float maxLossTotal = -546;
     public static float conditionExitLargeCandle = 600;//параметр кот определяет сколько добавить или убавить от цены свечи, в завис от того кулено или продано, и так мы поймем след свеча вышла за эту границу или нет
+    public static float bodyMove = 0;//сколько тело прошло от открыти до закрытия
+    public static float mainShadow = 0;//основная тень одной из сторон пин бара
+    public static float reverseShadow = 0;//обратная тень одной из сторон пин бара
+    public static float coefficientBS = 0;//коэффициент тела > относительно тени
+    public static float rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+    public static float rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
+    public static float rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
+    public static float rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится средняя скользящая в каком диапазоне
+
 
     public static List<Deal> positiveRes = new ArrayList<>();//list для хранения проведенных положительных сделок
     public static List<Deal> negativeRes = new ArrayList<>();//list для хранения проведенных отрицательных сделок
@@ -54,5 +57,7 @@ public class StaticData {
     public static float countContractsCompoundInterest = 0;//кол контрактов для реализации сложного процента
     public static float yieldsCompoundInterest = 0;//доходность для реализации сложного процента
     public static long totalIntervalCompoundInterest = 0;//интервал, по которому нужно пересчитать количество контрактов
+
+    public static boolean isBuyTrend = true;//индикатор треда, который рассчитывается в методе findTrend.false-нисходщий и наоборот
 
 }

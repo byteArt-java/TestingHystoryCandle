@@ -1,6 +1,7 @@
 import java.util.Stack;
 
 //Добавить след.условия на вход
+//0.добавить возможность рандомно выбирать условия входа, для того чтобы проверить какое условие с камими другими дают наибольшую прибыль
 //1.условие которое принимает сигнал на вход в месте где есть уровни, где нет уровня игнорировать
 //2.условие которое принимает в расчет ATR
 //3.условие которое копирует conditionTwo в кот.игнорировались голые с одной из сторон свечи,а в этом условии не игнорировать голыу свечи, а проверять если есть голая сторона, то пересекла ли эта сторона предыддущую свечку в сторону голого закрытия
@@ -17,92 +18,96 @@ import java.util.Stack;
 
 
 public class ConditionOpen {
-    private final ConditionClose conditionClose = new ConditionClose();
 
     //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк.
-    private boolean conditionOne(Stack<Candle> stack,Candle candle,boolean isOpenDeal){
+    private static boolean conditionZero(Candle candle){
         //==== условие в рост и дальше в снижение
-        if ((stack.peek().getOpen() - stack.peek().getLow()) < StaticData.minRP &&
-                (stack.peek().getClose() - stack.peek().getOpen()) > StaticData.minMove &&
-                (candle.getClose() - candle.getOpen()) < StaticData.largeMove && !isOpenDeal){
+        if ((StaticData.candleStack.peek().getOpen() - StaticData.candleStack.peek().getLow()) < StaticData.minRP &&
+                (StaticData.candleStack.peek().getClose() - StaticData.candleStack.peek().getOpen()) > StaticData.minMove &&
+                (candle.getClose() - candle.getOpen()) < StaticData.largeMove && !StaticData.isOpenDeal){
             StaticData.isBuy = true;
-            StaticData.oneMethod = 1;
+            ConditionClose.markerExit.set(0,true);
+            ConditionClose.markerExit.set(1,true);
             return true;
-        }else if ((stack.peek().getHigh() - stack.peek().getOpen()) < StaticData.minRP &&
-                (stack.peek().getOpen() - stack.peek().getClose()) > StaticData.minMove &&
-                (candle.getOpen() - candle.getClose()) < StaticData.largeMove && !isOpenDeal){
+        }else if ((StaticData.candleStack.peek().getHigh() - StaticData.candleStack.peek().getOpen()) < StaticData.minRP &&
+                (StaticData.candleStack.peek().getOpen() - StaticData.candleStack.peek().getClose()) > StaticData.minMove &&
+                (candle.getOpen() - candle.getClose()) < StaticData.largeMove && !StaticData.isOpenDeal){
             StaticData.isBuy = false;
-            StaticData.oneMethod = 1;
+            ConditionClose.markerExit.set(0,true);
+            ConditionClose.markerExit.set(1,true);
             return true;
         }
 
         return false;
     }
     //входим, если на предыд свече было сильное движение, и она закрылась норм. Без сильных теней и не голой с какой либо из сторон не менее minNakedSize пунктов
-    private boolean conditionTwo(Stack<Candle> stack,Candle candle, boolean isOpenDeal){
+    private static boolean conditionOne(Candle candle){
         //==== условие в рост и дальше в снижение
         if ((candle.getClose() - candle.getOpen()) > StaticData.largeMove &&
                 (candle.getHigh() - candle.getClose()) > StaticData.minNakedSize &&
                 (candle.getOpen() - candle.getLow()) > StaticData.minNakedSize &&
-                ((candle.getClose() - candle.getOpen()) * 1.3f) > (candle.getHigh() - candle.getClose()) + (candle.getOpen() - candle.getLow())){
+                ((candle.getClose() - candle.getOpen()) * 1.3f) > (candle.getHigh() - candle.getClose()) + (candle.getOpen() - candle.getLow())
+        && !StaticData.isOpenDeal){
             StaticData.isBuy = true;
-            StaticData.threeMethod = 1;
+            ConditionClose.markerExit.set(2,true);
             return true;
         }else if ((candle.getOpen() - candle.getClose()) > StaticData.largeMove &&
                 (candle.getHigh() - candle.getOpen()) > StaticData.minNakedSize &&
                 (candle.getClose() - candle.getLow()) > StaticData.minNakedSize &&
-                ((candle.getOpen() - candle.getClose()) * 1.3f) > (candle.getHigh() - candle.getOpen()) + (candle.getClose() - candle.getLow())){
+                ((candle.getOpen() - candle.getClose()) * 1.3f) > (candle.getHigh() - candle.getOpen()) + (candle.getClose() - candle.getLow())
+        &&!StaticData.isOpenDeal){
             StaticData.isBuy = false;
-            StaticData.threeMethod = 1;
+            ConditionClose.markerExit.set(2,true);
             return true;
         }
         return false;
     }
     //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк. и не голой с какой либо из сторон не менее minNakedSize пунктов
-    private boolean conditionThree(Stack<Candle> stack,Candle candle,boolean isOpenDeal){
+    private static boolean conditionTwo(Candle candle){
         //==== условие в рост и дальше в снижение
-        if ((stack.peek().getOpen() - stack.peek().getLow()) < StaticData.minRP &&
-                (stack.peek().getClose() - stack.peek().getOpen()) > StaticData.minMove &&
+        if ((StaticData.candleStack.peek().getOpen() - StaticData.candleStack.peek().getLow()) < StaticData.minRP &&
+                (StaticData.candleStack.peek().getClose() - StaticData.candleStack.peek().getOpen()) > StaticData.minMove &&
                 (candle.getHigh() - candle.getClose()) > StaticData.minNakedSize &&
                 (candle.getOpen() - candle.getLow()) > StaticData.minNakedSize &&
-                (candle.getClose() - candle.getOpen()) < StaticData.largeMove && !isOpenDeal){
+                (candle.getClose() - candle.getOpen()) < StaticData.largeMove && !StaticData.isOpenDeal){
             StaticData.isBuy = true;
-            StaticData.oneMethod = 1;
+            ConditionClose.markerExit.set(1,true);
             return true;
-        }else if ((stack.peek().getHigh() - stack.peek().getOpen()) < StaticData.minRP &&
-                (stack.peek().getOpen() - stack.peek().getClose()) > StaticData.minMove &&
+        }else if ((StaticData.candleStack.peek().getHigh() - StaticData.candleStack.peek().getOpen()) < StaticData.minRP &&
+                (StaticData.candleStack.peek().getOpen() - StaticData.candleStack.peek().getClose()) > StaticData.minMove &&
                 (candle.getHigh() - candle.getOpen()) > StaticData.minNakedSize &&
                 (candle.getClose() - candle.getLow()) > StaticData.minNakedSize &&
-                (candle.getOpen() - candle.getClose()) < StaticData.largeMove && !isOpenDeal){
+                (candle.getOpen() - candle.getClose()) < StaticData.largeMove && !StaticData.isOpenDeal){
             StaticData.isBuy = false;
-            StaticData.oneMethod = 1;
+            ConditionClose.markerExit.set(1,true);
             return true;
         }
         return false;
     }
 
     interface ArrayConditions{
-        boolean conditions(Stack<Candle> stack,Candle candle,boolean isOpenDeal);
+        boolean conditions(Candle candle);
     }
 
-    private final ArrayConditions[] arrayConditions = new ArrayConditions[]{
+    private static final ArrayConditions[] arrayConditions = new ArrayConditions[]{
             new ArrayConditions() {
-                @Override public boolean conditions(Stack<Candle> stack, Candle candle,boolean isOpenDeal) {
-                    return conditionOne(stack, candle,isOpenDeal);
+                @Override public boolean conditions(Candle candle) {
+                    return conditionZero(candle);
                 }
             },
             new ArrayConditions() {
-                @Override public boolean conditions(Stack<Candle> stack, Candle candle,boolean isOpenDeal) {
-                    return conditionTwo(stack, candle,isOpenDeal);
+                @Override public boolean conditions(Candle candle) {
+                    return conditionOne(candle);
                 }
             },
             new ArrayConditions() {
-                @Override public boolean conditions(Stack<Candle> stack, Candle candle,boolean isOpenDeal) {
-                    return conditionThree(stack, candle,isOpenDeal);
+                @Override public boolean conditions(Candle candle) {
+                    return conditionTwo(candle);
                 }
             }
     };
-    public boolean getCondition(int index,Stack<Candle> stack,Candle candle,boolean isOpenDeal){
-        return arrayConditions[index].conditions(stack, candle,isOpenDeal);
+
+    public static boolean getCondition(int index,Candle candle){
+        return arrayConditions[index].conditions(candle);
     }
 }
