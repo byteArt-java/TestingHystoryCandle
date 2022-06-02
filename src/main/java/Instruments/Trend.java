@@ -13,7 +13,7 @@ public class Trend {
         }
         boolean isBuyTrend = true;
         boolean isSellTrend = true;
-        for (int i = candleList.size(); i > (candleList.size() - rangeCandleForTrend); i--) {
+        for (int i = candleList.size() - 1; i > (candleList.size() - rangeCandleForTrend); i--) {
             isBuyTrend &= candleList.get(i).getHigh() < candle.getHigh();
             isSellTrend &= candleList.get(i).getLow() > candle.getLow();
         }

@@ -15,7 +15,7 @@ public class ATR {
         float low = 0;//старт цены отсчета диапазона
         float high = 0;//конец цены отсчета диапазона
 
-        for (int i = StaticData.candleList.size(); i > (StaticData.candleList.size() - StaticData.rangeCandleForATR); i--) {
+        for (int i = StaticData.candleList.size() - 1; i > (StaticData.candleList.size() - StaticData.rangeCandleForATR); i--) {
             low = low + StaticData.candleList.get(i).getLow();
             high = high + StaticData.candleList.get(i).getHigh();
         }

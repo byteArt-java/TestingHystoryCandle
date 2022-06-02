@@ -18,7 +18,7 @@ public class Main {
     private final static Random random = new Random();
 
     public static void main(String[] args) throws IOException, ParseException {
-        preparation(true,false,10000,900000,1,false,"M",
+        preparation(false,false,10000,900000,1,false,"M",
                 1,false,false,DateProviders.StaticData.allPathFiles);
     }
 
