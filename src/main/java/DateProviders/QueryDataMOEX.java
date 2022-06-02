@@ -1,3 +1,5 @@
+package DateProviders;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,7 +16,7 @@ public class QueryDataMOEX {
 
 //Pattern pattern = Pattern.compile("(Стоимость шага цены)(\\D+)(\\d+)(\\,)(\\d+)");
 // ---этот паттерн срабатывает и приходит к началу коэф
-    static void getWarranty(Map<String,Float> mapWarrantyProvision,Map<String,Float> mapPriceStep,String... codeContractShort){
+    public static void getWarranty(Map<String,Float> mapWarrantyProvision,Map<String,Float> mapPriceStep,String... codeContractShort){
         addLink();
         for (String s : codeContractShort) {
 

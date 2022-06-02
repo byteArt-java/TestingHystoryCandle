@@ -1,3 +1,5 @@
+package RunCounting;
+
 import java.util.Date;
 
 public class Candle {

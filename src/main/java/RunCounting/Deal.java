@@ -1,3 +1,5 @@
+package RunCounting;
+
 import java.util.Date;
 
 public class Deal {
@@ -66,6 +68,6 @@ public class Deal {
     }
 
     @Override public String toString() {
-        return "Deal{" + "dateOpen='" + dateOpen + '\'' + ", dateClose='" + dateClose + '\'' + ", yields=" + yields + ", open=" + open + ", price=" + close + ", isBuy=" + isBuy + '}';
+        return "RunCounting.Deal{" + "dateOpen='" + dateOpen + '\'' + ", dateClose='" + dateClose + '\'' + ", yields=" + yields + ", open=" + open + ", price=" + close + ", isBuy=" + isBuy + '}';
     }
 }

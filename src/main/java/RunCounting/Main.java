@@ -1,3 +1,12 @@
+package RunCounting;
+
+import Conditions.ConditionsClose;
+import Conditions.ConditionsOpen;
+import DateProviders.StaticData;
+import Instruments.ATR;
+import Instruments.MovingAverage;
+import Instruments.TypeCandleParameter;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -7,47 +16,13 @@ import java.util.*;
 
 public class Main {
     private final static Random random = new Random();
-    private final static Map<String,Float> mapWarrantyProvision = new HashMap<>();//карта которая отдает гарантийное обеспечение на конкретный контракт
-    private final static Map<String,Float> mapPriceStep = new HashMap<>();//карта которая отдает стоимость шага цены
-
-    private static String[] allPathFiles = {
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-190101-220522.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-211118-220522.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220318-220522.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220519-220519.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220513-220519.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220529.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220318-220518.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220422-220515.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220326-220525.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\ED.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SI-Hour-110101-220506.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-30M-190101-220430.txt",
-
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si_220301_220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si_220101_220228.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si_211101_211231.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si_210901_211031.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si_210701_210831.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si_210430_210630.txt",
-//
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\BR-30M-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\BR-Hour-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\GD-Hour-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-30M-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-Hour-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\RI-Hour-220326-220525.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SR-30M-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SR-Hour-190101-220430.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\ED-Hour-190101-220526.txt"
-    };
-    public static float rangeYields = -500000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static void main(String[] args) throws IOException, ParseException {
-        preparation(false,10000,900000,1,false,"M",
-                1,false,false,allPathFiles);
+        preparation(true,false,10000,900000,1,false,"M",
+                1,false,false,DateProviders.StaticData.allPathFiles);
     }
 
+    //isRandomConditions - включить рандомное условие по входу и рандомное количество условий по входу
     //isRandom - включить рандомизацию Статических параметров к примеру стоп-лосс.
     //countRandom - количество цикла рандомизации
     //capital - начальный капитал, участвует в Сложном проценте
@@ -58,12 +33,24 @@ public class Main {
     //isShowIntervalYields - показать ли доходность за определенный интервал времени
     //isLimitLoss - включить ли стратегию ограничения убытков
     //pathFiles - Массив Url адресов с историческими данными.
-    private static void preparation(boolean isRandom,int countRandom,float capital, int spanInterval,
-                                    boolean isShowCompoundInterest, String interval, int countInterval,
+    private static void preparation(boolean isRandomConditions,boolean isRandom,int countRandom,float capital,
+                                    int spanInterval, boolean isShowCompoundInterest, String interval,
+                                    int countInterval,
                                     boolean isShowIntervalYields, boolean isLimitLoss, String... pathFiles) throws IOException, ParseException {
         addDataToMap();
         if (isRandom){
             for (String pathFile : pathFiles) {//запуск программы для каждого загруженного файла с историч данными
+                //====включить рандомное условие по входу и рандомное количество условий по входу
+                if (isRandomConditions){
+                    int countConditions = random.nextInt(ConditionsOpen.length);
+                    for (int i = 0; i < countConditions; i++) {
+                        int indexConditions = random.nextInt(ConditionsOpen.length);
+                        ConditionsOpen.markerRandomOrDefaultOpen.set(indexConditions,true);
+                    }
+                }else {
+                    ConditionsOpen.markerRandomOrDefaultOpen.set(0,true);
+                }
+                //================================================================================
                 for (int i = 0; i < countRandom; i++) {
                     String nameInstrument = pathFile.substring(60,62).toUpperCase();
                     switch (nameInstrument){
@@ -76,21 +63,39 @@ public class Main {
                     }
                     processing(capital,spanInterval,isShowCompoundInterest,interval,countInterval,isShowIntervalYields,
                             isLimitLoss,pathFile);
+
                 }
+                ConditionsOpen.defaultSetListBooleanFromConditionOpen();
             }//конец iter файла
         }else {
-            for (String pathFile : pathFiles) {//запуск программы для каждого загруженного файла с историч данными
-//                StaticData.limitStop = 199;
-//                StaticData.minRP = 270;
-//                StaticData.minMove = 90;
-//                StaticData.largeMove = 1060;
-//                StaticData.maxLossTotal = -0.0055f;
-//            StaticData.minNakedSize = random.nextFloat();//минимальный диапазон для неголого закрытия
-//            StaticData.conditionExitLargeCandle = random.nextFloat();//параметр для выхода для больш свечи
-                processing(capital,spanInterval,isShowCompoundInterest,interval,countInterval,isShowIntervalYields,
-                        isLimitLoss,pathFile);
-
-            }//конец iter файла
+            if (isRandomConditions){
+                for (String pathFile : pathFiles) {
+                    int countConditions = random.nextInt(ConditionsOpen.length);
+                    for (int i = 0; i < countConditions; i++) {
+                        int indexConditions = random.nextInt(ConditionsOpen.length);
+                        ConditionsOpen.markerRandomOrDefaultOpen.set(indexConditions,true);
+                    }
+                    processing(capital,spanInterval,isShowCompoundInterest,interval,countInterval,isShowIntervalYields,
+                            isLimitLoss,pathFile);
+                    ConditionsOpen.defaultSetListBooleanFromConditionOpen();
+                }
+            }else {
+                //====запуск програмы без каких либо параметров рамндомизации, все параметры по умолчанию в DateProviders.StaticData
+                for (String pathFile : pathFiles) {//запуск программы для каждого загруженного файла с историч данными
+                    ConditionsOpen.markerRandomOrDefaultOpen.set(0,true);//установка условия входа по умолчанию
+                    StaticData.limitStop = 199;
+                    StaticData.minRP = 270;
+                    StaticData.minMove = 90;
+                    StaticData.largeMove = 1060;
+//                DateProviders.StaticData.maxLossTotal = -0.0055f;
+//            DateProviders.StaticData.minNakedSize = random.nextFloat();//минимальный диапазон для неголого закрытия
+//            DateProviders.StaticData.conditionExitLargeCandle = random.nextFloat();//параметр для выхода для больш свечи
+                    processing(capital,spanInterval,isShowCompoundInterest,interval,countInterval,isShowIntervalYields,
+                            isLimitLoss,pathFile);
+                    ConditionsOpen.defaultSetListBooleanFromConditionOpen();
+                }//конец iter файла
+                //=====================================================================================================
+            }
         }
     }
 
@@ -107,15 +112,15 @@ public class Main {
         String codeForMaps = Paths.get(file).getFileName().toString().substring(0,2).toUpperCase();//код для получения значения гарантийного обеспечения из Map
         if (isShowCompoundInterest){
             StaticData.capitalCompoundInterest = capital;
-            warrantyProvision = mapWarrantyProvision.get(codeForMaps);//получение значения Вариационной маржи
+            warrantyProvision = DateProviders.StaticData.mapWarrantyProvision.get(codeForMaps);//получение значения Вариационной маржи
         }
         //==========================================================================
 
         BufferedReader in = new BufferedReader(new FileReader(file));
         String line = "";
 
-        StaticData.countContractsCompoundInterest = capital / mapWarrantyProvision.get(codeForMaps);//кол.контрактов для сложного процента и с учетом spanMonth
-        final float countContractsOrdinary = capital / mapWarrantyProvision.get(codeForMaps);//кол.контрактов для yields
+        StaticData.countContractsCompoundInterest = capital / DateProviders.StaticData.mapWarrantyProvision.get(codeForMaps);//кол.контрактов для сложного процента и с учетом spanMonth
+        final float countContractsOrdinary = capital / DateProviders.StaticData.mapWarrantyProvision.get(codeForMaps);//кол.контрактов для yields
 
         while ((line = in.readLine()) != null){
             mainMethod(line,isShowIntervalYields,interval,countInterval,countContractsOrdinary,isShowCompoundInterest,spanInterval,warrantyProvision,isLimitLoss,countContractsOrdinary);
@@ -125,16 +130,16 @@ public class Main {
         if (StaticData.isOpenDeal){
             float result = 0.0f;
             if (StaticData.isBuy){
-                StaticData.close = StaticData.candleStack.peek().getClose();
+                StaticData.close = StaticData.candleList.get(StaticData.candleList.size() - 1).getClose();
                 result = (StaticData.close - StaticData.open);
             }else {
-                StaticData.close = StaticData.candleStack.peek().getClose();
+                StaticData.close = StaticData.candleList.get(StaticData.candleList.size() - 1).getClose();
                 result = (StaticData.open - StaticData.close);
             }
             StaticData.countCandleOpenPosition = 0;
             StaticData.yields = StaticData.yields + result;
             StaticData.isOpenDeal = false;
-            ConditionClose.defaultSetListBooleanFromConditionClose();
+            ConditionsClose.defaultSetListBooleanFromConditionClose();
             print("Доход со сделки = ",result);
             //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации  и spanMonth
             StaticData.yieldsCompoundInterest = (result * StaticData.countContractsCompoundInterest) + StaticData.yieldsCompoundInterest;
@@ -170,7 +175,7 @@ public class Main {
         }
 
         //===умножение на количество контрактов, который не учитывает сложный процент
-        StaticData.yields = (StaticData.yields * countContractsOrdinary) * mapPriceStep.get(codeForMaps);
+        StaticData.yields = (StaticData.yields * countContractsOrdinary) * DateProviders.StaticData.mapPriceStep.get(codeForMaps);
         //==========================================================================================================
 
         //===подсчет средней прибыли и убытка на сделку из positiveRes List и negativeRes List
@@ -189,7 +194,7 @@ public class Main {
         }
         averageFailSequence = averageFailSequence / StaticData.countFailSequenceList.size();
         //==================================================
-//            System.out.println(Arrays.toString(new List[]{StaticData.countFailSequenceList}));
+//            System.out.println(Arrays.toString(new List[]{DateProviders.StaticData.countFailSequenceList}));
 
         if (file.contains("ED")){
             total.append(String.format("Yields = %.4f. Стоп = %.4f. minRP = %.4f. minMove = %.4f. largeMove = %.4f. maxLossTotal = %.4f. minNakedSize = %.4f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.Максимальное кол. неудачных сделок = %d.Среднее количество неудачных сделок = %.3f.\n",
@@ -208,15 +213,15 @@ public class Main {
         }
         //==================================================================================================================
 
-//            int total2 = (int) (StaticData.yieldsLimitFailSequence * countContractsOrdinary);
-        if (StaticData.yields > rangeYields){
+//            int total2 = (int) (DateProviders.StaticData.yieldsLimitFailSequence * countContractsOrdinary);
+        if (StaticData.yields > DateProviders.StaticData.rangeYields){
             System.out.print(total.toString());
             writerFile.write(total.toString());
             writerFile.flush();
-//                System.out.println(StaticData.conditionExitLargeCandle);
-//                System.out.println(total2 + " StaticData.yieldsLimitFailSequence");
+//                System.out.println(DateProviders.StaticData.conditionExitLargeCandle);
+//                System.out.println(total2 + " DateProviders.StaticData.yieldsLimitFailSequence");
         }
-        StaticData.candleStack.clear();
+        StaticData.candleList.clear();
         StaticData.commonListDeals.clear();
         StaticData.open = 0;
         StaticData.close = 0;
@@ -242,7 +247,7 @@ public class Main {
         StaticData.yieldsCompoundInterest = 0;
         StaticData.totalIntervalCompoundInterest = 0;
 
-//            System.out.println("Сделки дохдоность последовательно: " + Arrays.toString(new List[]{StaticData.commonListDeals}));
+//            System.out.println("Сделки дохдоность последовательно: " + Arrays.toString(new List[]{DateProviders.StaticData.commonListDeals}));
 
     }//test
     private static void print(String msg,float result){
@@ -281,23 +286,23 @@ public class Main {
     }
 
     private static void addDataToMap(){
-        mapWarrantyProvision.put("SI",10483.00f);//заглушка чтобы быстрее тестировать
-        mapWarrantyProvision.put("RI",68950.00f);//заглушка чтобы быстрее тестировать
-        mapWarrantyProvision.put("BR",23263.00f);//заглушка чтобы быстрее тестировать
-        mapWarrantyProvision.put("SR",5106.00f);//заглушка чтобы быстрее тестировать
-        mapWarrantyProvision.put("GD",6839.00f);//заглушка чтобы быстрее тестировать
-        mapWarrantyProvision.put("ED",2748.00f);//заглушка чтобы быстрее тестировать
-        mapWarrantyProvision.put("SF",2985.79f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapWarrantyProvision.put("SI",10483.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapWarrantyProvision.put("RI",68950.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapWarrantyProvision.put("BR",23263.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapWarrantyProvision.put("SR",5106.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapWarrantyProvision.put("GD",6839.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapWarrantyProvision.put("ED",2748.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapWarrantyProvision.put("SF",2985.79f);//заглушка чтобы быстрее тестировать
 
-        mapPriceStep.put("SI",1.00f);//заглушка чтобы быстрее тестировать
-        mapPriceStep.put("RI",1.3088f);//заглушка чтобы быстрее тестировать
-        mapPriceStep.put("BR",6.5444f);//заглушка чтобы быстрее тестировать
-        mapPriceStep.put("SR",1.00f);//заглушка чтобы быстрее тестировать
-        mapPriceStep.put("GD",6.5444f);//заглушка чтобы быстрее тестировать
-        mapPriceStep.put("ED",6.5444f);//заглушка чтобы быстрее тестировать
-        mapPriceStep.put("SF",0.65444f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapPriceStep.put("SI",1.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapPriceStep.put("RI",1.3088f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapPriceStep.put("BR",6.5444f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapPriceStep.put("SR",1.00f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapPriceStep.put("GD",6.5444f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapPriceStep.put("ED",6.5444f);//заглушка чтобы быстрее тестировать
+        DateProviders.StaticData.mapPriceStep.put("SF",0.65444f);//заглушка чтобы быстрее тестировать
 
-//        QueryDataMOEX.getWarranty(mapWarrantyProvision,mapPriceStep,"RI","SF","ED","SI","GD","BR");
+//        DateProviders.QueryDataMOEX.getWarranty(DateProviders.StaticData.mapWarrantyProvision,DateProviders.StaticData.mapPriceStep,"RI","SF","ED","SI","GD","BR");
     }
 
     //===показывает промежуточную прибыль в зависимости от заданного интервала
@@ -345,18 +350,18 @@ public class Main {
         }
         if (StaticData.tempFailSequence == 1 && !StaticData.isFirstFailSequence){
             StaticData.isFirstFailSequence = true;
-//            System.out.println("from " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+//            System.out.println("from " + candle.getDateClose() + " = " + DateProviders.StaticData.tempFailSequence);
         }
         if (result > 0 && StaticData.tempFailSequence != 0 && StaticData.tempFailSequence >= StaticData.countFailSequence){
             StaticData.countFailSequenceList.add(StaticData.tempFailSequence);
             StaticData.countFailSequence = StaticData.tempFailSequence;
             StaticData.isFirstFailSequence = false;
-//            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+//            System.out.println("to " + candle.getDateClose() + " = " + DateProviders.StaticData.tempFailSequence);
             StaticData.tempFailSequence = 0;
         }else if (result > 0 && StaticData.tempFailSequence < StaticData.countFailSequence){
             StaticData.countFailSequenceList.add(StaticData.tempFailSequence);
             StaticData.isFirstFailSequence = false;
-//            System.out.println("to " + candle.getDateClose() + " = " + StaticData.tempFailSequence);
+//            System.out.println("to " + candle.getDateClose() + " = " + DateProviders.StaticData.tempFailSequence);
             StaticData.tempFailSequence = 0;
         }
     }
@@ -369,7 +374,7 @@ public class Main {
                 StaticData.yieldsLimitFailSequence = StaticData.yieldsLimitFailSequence + result;
                 StaticData.currentFailSequence = 0;
             }
-            StaticData.positiveRes.add(new Deal(StaticData.openDeal,StaticData.candleStack.peek().getDateClose(),result,StaticData.open,StaticData.close,StaticData.isBuy));
+            StaticData.positiveRes.add(new Deal(StaticData.openDeal,StaticData.candleList.get(StaticData.candleList.size() - 1).getDateClose(),result,StaticData.open,StaticData.close,StaticData.isBuy));
         }else if (result < 0){
             if (StaticData.currentFailSequence >= 2){
 
@@ -377,7 +382,7 @@ public class Main {
                 StaticData.yieldsLimitFailSequence = StaticData.yieldsLimitFailSequence + result;
             }
             StaticData.currentFailSequence++;
-            StaticData.negativeRes.add(new Deal(StaticData.openDeal,StaticData.candleStack.peek().getDateClose(),result,StaticData.open,StaticData.close,StaticData.isBuy));
+            StaticData.negativeRes.add(new Deal(StaticData.openDeal,StaticData.candleList.get(StaticData.candleList.size() - 1).getDateClose(),result,StaticData.open,StaticData.close,StaticData.isBuy));
         }
         StaticData.commonListDeals.add(result);
     }
@@ -392,12 +397,12 @@ public class Main {
         }
     }
 
-    private static float method3(){
+    private static float countingResult(){
         float a = 0;
         if (StaticData.isBuy){
-            a = (StaticData.candleStack.peek().getClose() - StaticData.open);
+            a = (StaticData.candleList.get(StaticData.candleList.size() - 1).getClose() - StaticData.open);
         }else {
-            a = (StaticData.open - StaticData.candleStack.peek().getClose());
+            a = (StaticData.open - StaticData.candleList.get(StaticData.candleList.size() - 1).getClose());
         }
         return a;
     }
@@ -415,10 +420,10 @@ public class Main {
     private static float method0(Candle candle){
         float a = 0;
         if (StaticData.isBuy){
-            a = ((StaticData.candleStack.peek().getOpen() + StaticData.candleStack.peek().getClose())
+            a = ((StaticData.candleList.get(StaticData.candleList.size() - 1).getOpen() + StaticData.candleList.get(StaticData.candleList.size() - 1).getClose())
                     / 2)  - StaticData.open;
         }else {
-            a = StaticData.open - ((StaticData.candleStack.peek().getOpen() + StaticData.candleStack.peek().getClose())
+            a = StaticData.open - ((StaticData.candleList.get(StaticData.candleList.size() - 1).getOpen() + StaticData.candleList.get(StaticData.candleList.size() - 1).getClose())
                     / 2);
         }
         return a;
@@ -427,16 +432,16 @@ public class Main {
     private static float method5(){
         float a = 0;
         if (StaticData.isBuy){
-            a = (StaticData.candleStack.peek().getLow() - StaticData.open);
+            a = (StaticData.candleList.get(StaticData.candleList.size() - 1).getLow() - StaticData.open);
         }else {
-            a = (StaticData.open - StaticData.candleStack.peek().getHigh());
+            a = (StaticData.open - StaticData.candleList.get(StaticData.candleList.size() - 1).getHigh());
             StaticData.countCandleOpenPosition = 0;
         }
         return a;
     }
 
     private static float method6(float result,boolean isLimitLoss){
-        ConditionClose.defaultSetListBooleanFromConditionClose();
+        ConditionsClose.defaultSetListBooleanFromConditionClose();
         StaticData.isOpenDeal = false;
         StaticData.countCandleOpenPosition = 0;
         //==тут мы складываем додходность в перменную для того, чтобы ограничить убытки, если мы установили огранич убытка к примеру в -546 пунктов
@@ -461,7 +466,7 @@ public class Main {
     }
 
     private static float amountYields(float result, boolean isLimitLoss){
-        ConditionClose.defaultSetListBooleanFromConditionClose();
+        ConditionsClose.defaultSetListBooleanFromConditionClose();
         StaticData.countCandleOpenPosition = 0;
         StaticData.isOpenDeal = false;
         //==тут мы складываем додходность в перменную для того, чтобы ограничить убытки, если мы установили огранич убытка к примеру в -546 пунктов
@@ -472,8 +477,8 @@ public class Main {
         return StaticData.yields + result;
     }
 
-    private static float endDay(float result, boolean isLimitLoss){
-        ConditionClose.defaultSetListBooleanFromConditionClose();
+    private static float endDay(float result){
+        ConditionsClose.defaultSetListBooleanFromConditionClose();
         StaticData.countCandleOpenPosition = 0;
         StaticData.isOpenDeal = false;
         //==тут мы складываем додходность в перменную для того, чтобы ограничить убытки, если мы установили огранич убытка к примеру в -546 пунктов
@@ -494,6 +499,11 @@ public class Main {
 
         Candle candle = new Candle(array[1], date, Float.parseFloat(array[4]), Float.parseFloat(array[5]), Float.parseFloat(array[6]), Float.parseFloat(array[7]), Integer.parseInt(array[8]));
 
+        //==подготовка работы инструментов из пакета Instruments
+        MovingAverage.findMovingAverage(TypeCandleParameter.CLOSE,StaticData.rangeCandleForMA);
+        ATR.findATR(candle);
+        //======================================================
+
         //=подготовка статических данных для отображения доходности за определенный промежуток времени и отобр доходности
         //method1
         method1(isShowIntervalYields,candle,interval,countInterval,countContractsOrdinary);
@@ -509,18 +519,18 @@ public class Main {
         }
 
         //====тут очищаем стэк если начался новый день, и закрываем позицию за пред день, если не были закрыты
-        if (StaticData.candleStack.size() > 0){
-            if (Integer.parseInt(StaticData.candleStack.peek().getDateClose().toString().substring(8,10)) != Integer.parseInt(array[2].substring(6,8))){
+        if (StaticData.candleList.size() > 0){
+            if (Integer.parseInt(StaticData.candleList.get(StaticData.candleList.size() - 1).getDateClose().toString().substring(8,10)) != Integer.parseInt(array[2].substring(6,8))){
                 if (StaticData.isOpenDeal){
                     float result = 0.0f;
                     //method3
-                    result = method3();
+                    result = countingResult();
 
                     //===логика максимальных неудачных последовательных сделок
                     analyzeMaxFailDeals(result,candle);
                     //========================================================
 
-                    StaticData.yields = endDay(result,isLimitLoss);
+                    StaticData.yields = endDay(result);
 
                     print("Доход со сделки = ",result);
                     //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации  и spanMonth
@@ -531,11 +541,10 @@ public class Main {
                     //===тут мы выстраиваем логику подсчета максимальной просадки
                     countMaxDescendingMoney(result * countContractsOrdinary,isLimitLoss,ordinaryCountContracts);
                     //===========================================================
-                    //===кладем результат сделки в Лист
+                    //===кладем результат сделки в Лист с отриц результатом или полож результатом, а тажк е кладем в любом случае в лист общий
                     posAndNegList(result);
                     //========================================================================
                 }
-                StaticData.candleStack.clear();
             }
         }
 
@@ -550,9 +559,9 @@ public class Main {
         }
 
         //все возможные выходы из сделки
-        if (!StaticData.candleStack.isEmpty()){
+        if (!StaticData.candleList.isEmpty()){
             //условие выхода по стопу
-            if (StaticData.countCandleOpenPosition <= 1 && ConditionClose.
+            if (StaticData.countCandleOpenPosition <= 1 && ConditionsClose.
                     getCondition(0,candle)){
 
                 float result = method4(candle);
@@ -580,7 +589,7 @@ public class Main {
 
             //условие выхода за середину, большой свечи
             else if (StaticData.countCandleOpenPosition <= 1 &&
-                    ConditionClose.getCondition(2,candle)){
+                    ConditionsClose.getCondition(2,candle)){
                 float result = method0(candle);
                 //===логика максимальных неудачных последовательных сделок
                 analyzeMaxFailDeals(result,candle);
@@ -606,7 +615,7 @@ public class Main {
 
             ////условие выхода, когда цена выходит за край свечи
             else if (StaticData.countCandleOpenPosition > 1 &&
-                    ConditionClose.getCondition(1,candle)){
+                    ConditionsClose.getCondition(1,candle)){
 
                 float result = method5();
                 //===логика максимальных неудачных последовательных сделок
@@ -632,19 +641,21 @@ public class Main {
             }
         }
 
-        StaticData.candleStack.push(candle);
+        //метод добавляет свечу в лист общий, находит макс необходимое число для расчета инструментов и удаляет из листа с начала свечи, если размер листа больше макс числа
+        addAndCheckSizeList(candle);
 
-        //Условия входа в сделку.Метод 1 в ConditionOpen
-        if (ConditionOpen.getCondition(0,candle)){
-            StaticData.open = candle.getClose();
-            StaticData.isOpenDeal = true;//сделка открыта
+        //Проверка условия входа в сделку в Conditions.ConditionsOpen.List<Boolean> markerRandomOrDefaultOpen
+        if (!StaticData.isOpenDeal){
+            for (int i = 0; i < ConditionsOpen.length; i++) {
+                if (ConditionsOpen.markerRandomOrDefaultOpen.get(i)){
+                    if (ConditionsOpen.getCondition(i,candle)){
+                        StaticData.open = candle.getClose();
+                        StaticData.isOpenDeal = true;//сделка открыта
+                        break;
+                    }
+                }
+            }
         }
-
-        //Условия входа в сделку.Метод 2 в ConditionOpen
-//        if (conditionOpen.getCondition(1,StaticData.candleStack,candle,StaticData.isOpenDeal)){
-//            StaticData.open = candle.getClose();
-//            StaticData.isOpenDeal = true;//сделка открыта
-//        }
     }
 
     private static void randomRI(){
@@ -659,7 +670,8 @@ public class Main {
         StaticData.mainShadow = 0;//основная тень одной из сторон пин бара
         StaticData.reverseShadow = 0;//обратная тень одной из сторон пин бара
         StaticData.coefficientBS = 0;//коэффициент тела > относительно тени
-        StaticData.rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+
+        StaticData.rangeExtremum = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
         StaticData.rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
         StaticData.rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
         StaticData.rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится сред
@@ -671,17 +683,18 @@ public class Main {
         StaticData.minRP = random.nextInt(100)*10 + 10;//(minReversePrice)условие обратного движения по свече
         StaticData.minMove = random.nextInt(150)*10 + 10;//сколько минимально должн пройти цена от открытия до закрытия
         StaticData.largeMove = random.nextInt(400)*10 + 10;//сколько должно пройти, чтобы сработало 2 условие
-//        StaticData.maxLossTotal = random.nextInt(990) - 1000;
-//        StaticData.minNakedSize = random.nextInt(20)*5 + 5;//минимальный диапазон для неголого закрытия
-//        StaticData.conditionExitLargeCandle = random.nextInt(100)*20;//параметр для выхода для больш свечи
-//        StaticData.bodyMove = 0;//сколько тело прошло от открыти до закрытия
-//        StaticData.mainShadow = 0;//основная тень одной из сторон пин бара
-//        StaticData.reverseShadow = 0;//обратная тень одной из сторон пин бара
-//        StaticData.coefficientBS = 0;//коэффициент тела > относительно тени
-//        StaticData.rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
-//        StaticData.rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
-//        StaticData.rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
-//        StaticData.rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится сред
+//        DateProviders.StaticData.maxLossTotal = random.nextInt(990) - 1000;
+//        DateProviders.StaticData.minNakedSize = random.nextInt(20)*5 + 5;//минимальный диапазон для неголого закрытия
+//        DateProviders.StaticData.conditionExitLargeCandle = random.nextInt(100)*20;//параметр для выхода для больш свечи
+//        DateProviders.StaticData.bodyMove = 0;//сколько тело прошло от открыти до закрытия
+//        DateProviders.StaticData.mainShadow = 0;//основная тень одной из сторон пин бара
+//        DateProviders.StaticData.reverseShadow = 0;//обратная тень одной из сторон пин бара
+//        DateProviders.StaticData.coefficientBS = 0;//коэффициент тела > относительно тени
+
+//        DateProviders.StaticData.rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+//        DateProviders.StaticData.rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
+//        DateProviders.StaticData.rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
+//        DateProviders.StaticData.rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится сред
     }
 
     private static void randomGD(){//1900.1 к примеру
@@ -696,7 +709,8 @@ public class Main {
         StaticData.mainShadow = 0;//основная тень одной из сторон пин бара
         StaticData.reverseShadow = 0;//обратная тень одной из сторон пин бара
         StaticData.coefficientBS = 0;//коэффициент тела > относительно тени
-        StaticData.rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+
+        StaticData.rangeExtremum = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
         StaticData.rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
         StaticData.rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
         StaticData.rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится сред
@@ -714,7 +728,8 @@ public class Main {
         StaticData.mainShadow = 0;//основная тень одной из сторон пин бара
         StaticData.reverseShadow = 0;//обратная тень одной из сторон пин бара
         StaticData.coefficientBS = 0;//коэффициент тела > относительно тени
-        StaticData.rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+
+        StaticData.rangeExtremum = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
         StaticData.rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
         StaticData.rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
         StaticData.rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится сред
@@ -732,7 +747,8 @@ public class Main {
         StaticData.mainShadow = 0;//основная тень одной из сторон пин бара
         StaticData.reverseShadow = 0;//обратная тень одной из сторон пин бара
         StaticData.coefficientBS = 0;//коэффициент тела > относительно тени
-        StaticData.rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+
+        StaticData.rangeExtremum = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
         StaticData.rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
         StaticData.rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
         StaticData.rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится сред
@@ -750,10 +766,20 @@ public class Main {
         StaticData.mainShadow = 0;//основная тень одной из сторон пин бара
         StaticData.reverseShadow = 0;//обратная тень одной из сторон пин бара
         StaticData.coefficientBS = 0;//коэффициент тела > относительно тени
-        StaticData.rangeList = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+
+        StaticData.rangeExtremum = 0;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
         StaticData.rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
         StaticData.rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
         StaticData.rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится сред
+    }
+
+    private static void addAndCheckSizeList(Candle candle){
+        StaticData.candleList.add(candle);
+        int maxNumber = Math.max(Math.max(StaticData.rangeExtremum,StaticData.rangeCandleForTrend),
+                Math.max(StaticData.rangeCandleForATR,StaticData.rangeCandleForMA));
+        if (StaticData.candleList.size() > maxNumber){
+            StaticData.candleList.remove(0);
+        }
     }
 
 }
