@@ -6,10 +6,11 @@ import RunCounting.Deal;
 import java.util.*;
 
 public class StaticData {
-    public static float rangeYields = 1500000;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 0;//предел прибыли, после которого идет вывод на экран и запись в файл
 
+    public static float coefficientRiskManagement = 0.3f;//коэффиц который манипулирует с количесвом контрактов, если контрактов было 100, то умножение на этот коэф даст 30 констрактов
     public static List<Candle> candleList = new ArrayList<>();//лист для хранения свечей за пределенный промежуток времени
-    public static float yields = 0.0f;//перемення для складывания результата торговли
+    public static float yieldsCommons = 0.0f;//перемення для складывания результата торговли
     public static float tempYields = 0.0f;//перемення для складывания результата торговли, с учетом ограичения убытков
     public static List<Float> commonListDeals = new ArrayList<>();//лист для всех сделок последовтельно
     public static float open = 0.0f;//цена открытия
@@ -107,5 +108,4 @@ public class StaticData {
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\SR-Hour-190101-220430.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\ED-Hour-190101-220526.txt"
     };
-
 }
