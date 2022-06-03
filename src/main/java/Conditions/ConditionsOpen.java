@@ -1,6 +1,7 @@
 package Conditions;
 
 import DateProviders.StaticData;
+import RunCounting.Candle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
 
 
 public class ConditionsOpen {
-    public static int length = 7;//скольк количество условий, столько и длина
+    public static int length = 9;//скольк количество условий, столько и длина
     public static List<Boolean> markerRandomOrDefaultOpen = new ArrayList<>(length);//маркер который срабатывает когда идет вход по сделке, чтобы понять по каким условиям выходить
 
     static {
@@ -134,7 +135,7 @@ public class ConditionsOpen {
         return false;
     }
 
-    //===условие входа по пин бару
+    //===условие входа по пин бару, не менять зависимость conditionSeven
     private static boolean conditionFourth(RunCounting.Candle candle){
         if ((candle.getClose() - candle.getOpen()) >= DateProviders.StaticData.bodyMove &&
                 (candle.getHigh() - candle.getClose()) <= DateProviders.StaticData.reverseShadow &&
@@ -189,6 +190,46 @@ public class ConditionsOpen {
         return false;
     }
 
+    //===входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк.,
+    //но перед этим свеча закрылась либо по дожи, либо по пин бару
+    private static boolean conditionSeven(RunCounting.Candle candle){//int rangeList-диапазон расчета экстремумов тз Листа
+        if (StaticData.candleList.size() < 2){
+            return false;
+        }
+        if (conditionEight(StaticData.candleList.get(StaticData.candleList.size() - 1)) ||
+                conditionFourth(StaticData.candleList.get(StaticData.candleList.size() - 1))){
+            //==== условие в рост и дальше в снижение
+            if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getLow()) < DateProviders.StaticData.minRP &&
+                    (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) > DateProviders.StaticData.minMove &&
+                    (candle.getClose() - candle.getOpen()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
+                DateProviders.StaticData.isBuy = true;
+                ConditionsClose.markerExit.set(0,true);
+                ConditionsClose.markerExit.set(1,true);
+                return true;
+            }else if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getHigh() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) < DateProviders.StaticData.minRP &&
+                    (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose()) > DateProviders.StaticData.minMove &&
+                    (candle.getOpen() - candle.getClose()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
+                DateProviders.StaticData.isBuy = false;
+                ConditionsClose.markerExit.set(0,true);
+                ConditionsClose.markerExit.set(1,true);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //===условие входа по доджи, но без явныго выделения направления тела.Зависимость от conditionSeven.не менять.
+    private static boolean conditionEight(RunCounting.Candle candle){
+        if (((candle.getHigh() - candle.getClose()) * 3) > (candle.getClose() - candle.getOpen()) &&
+                ((candle.getOpen() - candle.getLow()) * 3) > (candle.getClose() - candle.getOpen())){
+            return true;
+        }else if (((candle.getHigh() - candle.getOpen()) * 3) > (candle.getOpen() - candle.getClose()) &&
+                ((candle.getClose() - candle.getLow()) * 3) > (candle.getOpen() - candle.getClose())){
+            return true;
+        }
+        return false;
+    }
+
     private static final ArrayConditions[] arrayConditions = new ArrayConditions[]{
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
@@ -223,6 +264,16 @@ public class ConditionsOpen {
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
                     return conditionSix(candle);
+                }
+            },
+            new ArrayConditions() {
+                @Override public boolean conditions(Candle candle) {
+                    return conditionSeven(candle);
+                }
+            },
+            new ArrayConditions() {
+                @Override public boolean conditions(Candle candle) {
+                    return conditionEight(candle);
                 }
             }
     };

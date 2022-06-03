@@ -9,7 +9,7 @@ public class ATR {
     //тут проверяется движение в оба направления и если сумма одного направления положительная, значит его и высчитываем ATR
     public static float findATR(RunCounting.Candle candle){
         if (StaticData.candleList.size() < StaticData.rangeCandleForATR){
-            System.out.println("В List<Candle> candleList недостаточно свечей для расчета ATR");
+//            System.out.println("В List<Candle> candleList недостаточно свечей для расчета ATR");
             return 0;
         }
         float low = 0;//старт цены отсчета диапазона

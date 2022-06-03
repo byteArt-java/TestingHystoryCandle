@@ -6,7 +6,7 @@ import RunCounting.Deal;
 import java.util.*;
 
 public class StaticData {
-    public static float rangeYields = -500000;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 1500000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static List<Candle> candleList = new ArrayList<>();//лист для хранения свечей за пределенный промежуток времени
     public static float yields = 0.0f;//перемення для складывания результата торговли
@@ -28,6 +28,7 @@ public class StaticData {
     public static float largeMove = 980;//сколько должно пройти, чтобы сработало 2 условие//default 980
     public static float minNakedSize = 10;//минимальный диапазон для неголого закрытия//default 10
     public static float maxLossTotal = -546;
+    public static float slipPage = -11;//эффект проскальзывания при открытии сделки или сколькальзывании стопа
     public static float conditionExitLargeCandle = 600;//параметр кот определяет сколько добавить или убавить от цены свечи, в завис от того кулено или продано, и так мы поймем след свеча вышла за эту границу или нет
     public static float bodyMove = 0;//сколько тело прошло от открыти до закрытия
     public static float mainShadow = 0;//основная тень одной из сторон пин бара
@@ -76,8 +77,12 @@ public class StaticData {
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220318-220522.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220519-220519.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220513-220519.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220529.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220531-220601.txt",
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220529.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220525-220601.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220531-220601.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220513-220518.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220519-220524.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220519-220530.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220318-220518.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220422-220515.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220326-220525.txt",

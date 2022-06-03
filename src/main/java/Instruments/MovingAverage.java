@@ -9,7 +9,7 @@ public class MovingAverage {
     //тут берется среднее значение за определенный диапазон свечей, к примеру закрытия, можно установить и открытия
     public static float findMovingAverage(TypeCandleParameter typeCandleParameter, float rangeCandleForMA){
         if (StaticData.candleList.size() < rangeCandleForMA){
-            System.out.println("В List<RunCounting.Candle> candleList недостаточно свечей для расчета средней скользящей");
+//            System.out.println("В List<RunCounting.Candle> candleList недостаточно свечей для расчета средней скользящей");
             return 0;
         }
         float amountTotalPrice = 0;
