@@ -6,9 +6,9 @@ import RunCounting.Deal;
 import java.util.*;
 
 public class StaticData {
-    public static float rangeYields = 0;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = -5000000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
-    public static float coefficientRiskManagement = 0.3f;//коэффиц который манипулирует с количесвом контрактов, если контрактов было 100, то умножение на этот коэф даст 30 констрактов
+    public static float coefficientRiskManagement = 1.0f;//коэффиц который манипулирует с количесвом контрактов, если контрактов было 100, то умножение на этот коэф даст 30 констрактов
     public static List<Candle> candleList = new ArrayList<>();//лист для хранения свечей за пределенный промежуток времени
     public static float yieldsCommons = 0.0f;//перемення для складывания результата торговли
     public static float tempYields = 0.0f;//перемення для складывания результата торговли, с учетом ограичения убытков

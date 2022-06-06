@@ -27,7 +27,7 @@ import java.util.List;
 
 
 public class ConditionsOpen {
-    public static int length = 9;//скольк количество условий, столько и длина
+    public static int length = 10;//скольк количество условий, столько и длина
     public static List<Boolean> markerRandomOrDefaultOpen = new ArrayList<>(length);//маркер который срабатывает когда идет вход по сделке, чтобы понять по каким условиям выходить
 
     static {
@@ -36,19 +36,20 @@ public class ConditionsOpen {
         }
     }
 
-    //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк.
+    //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк. От открытия,и
+    // до закрытия свечи прошло минимум minMove и не более largeMove
     private static boolean conditionZero(RunCounting.Candle candle){
         if (markerRandomOrDefaultOpen.get(0)){
             //==== условие в рост и дальше в снижение
-            if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getLow()) < DateProviders.StaticData.minRP &&
-                    (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) > DateProviders.StaticData.minMove &&
+            if ((candle.getOpen() - candle.getLow()) < DateProviders.StaticData.minRP &&
+                    (candle.getClose() - candle.getOpen()) > DateProviders.StaticData.minMove &&
                     (candle.getClose() - candle.getOpen()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
                 DateProviders.StaticData.isBuy = true;
-                ConditionsClose.markerExit.set(0,true);
-                ConditionsClose.markerExit.set(1,true);
+                ConditionsClose.markerExit.set(0,true);//первичное условие выхода по стопу
+                ConditionsClose.markerExit.set(1,true);//вторичное условие выхода за край свечи
                 return true;
-            }else if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getHigh() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) < DateProviders.StaticData.minRP &&
-                    (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose()) > DateProviders.StaticData.minMove &&
+            }else if ((candle.getHigh() - candle.getOpen()) < DateProviders.StaticData.minRP &&
+                    (candle.getOpen() - candle.getClose()) > DateProviders.StaticData.minMove &&
                     (candle.getOpen() - candle.getClose()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
                 DateProviders.StaticData.isBuy = false;
                 ConditionsClose.markerExit.set(0,true);
@@ -233,6 +234,33 @@ public class ConditionsOpen {
         return false;
     }
 
+    //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк. От открытия,и
+    // до закрытия свечи прошло минимум minMove и не более largeMove. Похоже на условие conditionZero, но тут добавляется
+    //если нет сильной тени в торону открытия сделки
+    private static boolean conditionNine(RunCounting.Candle candle){
+        if (markerRandomOrDefaultOpen.get(9)){
+            //==== условие в рост и дальше в снижение
+            if ((candle.getOpen() - candle.getLow()) < DateProviders.StaticData.minRP &&
+                    (candle.getClose() - candle.getOpen()) > DateProviders.StaticData.minMove &&
+                    (candle.getClose() - candle.getOpen()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal &&
+                    (candle.getHigh() - candle.getClose()) > ((candle.getClose() - candle.getOpen()) * 1.3)){
+                DateProviders.StaticData.isBuy = true;
+                ConditionsClose.markerExit.set(0,true);//первичное условие выхода по стопу
+                ConditionsClose.markerExit.set(1,true);//вторичное условие выхода за край свечи
+                return true;
+            }else if ((candle.getHigh() - candle.getOpen()) < DateProviders.StaticData.minRP &&
+                    (candle.getOpen() - candle.getClose()) > DateProviders.StaticData.minMove &&
+                    (candle.getOpen() - candle.getClose()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal
+            && (candle.getClose() - candle.getLow()) > ((candle.getOpen() - candle.getClose()) * 1.3)){
+                DateProviders.StaticData.isBuy = false;
+                ConditionsClose.markerExit.set(0,true);
+                ConditionsClose.markerExit.set(1,true);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static final ArrayConditions[] arrayConditions = new ArrayConditions[]{
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
@@ -277,6 +305,11 @@ public class ConditionsOpen {
             new ArrayConditions() {
                 @Override public boolean conditions(Candle candle) {
                     return conditionEight(candle);
+                }
+            },
+            new ArrayConditions() {
+                @Override public boolean conditions(Candle candle) {
+                    return conditionNine(candle);
                 }
             }
     };

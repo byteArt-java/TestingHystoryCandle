@@ -22,7 +22,7 @@ public class Main {
 
         testing(false,
                 false,100000,900000,
-                1, false,
+                1, true,
                 "W", 1,false,
                 false,DateProviders.StaticData.allPathFiles);
     }
@@ -88,7 +88,7 @@ public class Main {
             }else {
                 //====запуск програмы без каких либо параметров рамндомизации, все параметры по умолчанию в DateProviders.StaticData
                 for (String pathFile : pathFiles) {//запуск программы для каждого загруженного файла с историч данными
-                    ConditionsOpen.markerRandomOrDefaultOpen.set(0,true);//установка условия входа по умолчанию
+                    ConditionsOpen.markerRandomOrDefaultOpen.set(9,true);//установка условия входа по умолчанию
                     StaticData.limitStop = 199;
                     StaticData.minRP = 270;
                     StaticData.minMove = 90;
