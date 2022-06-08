@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 //Добавить след.условия на вход
-//---сделать подсчет прибыли в программе 30% от капитала, чтобы можно было нарастить количество контрактов ,если сделка идет с прибылью и протестировать это все
 //0.добавить механизм анализа свечей(в том числе свечи предшествующие хорошей свече) после которых идет хорошее движение, и добавить в Лист возможно както с предшествующими свечами, с подсчетом как часто похожие свечи встречаются
 //0.1 добавить вариант условия 0, где учитывается minRP, а также уцчитывать Другую сторону свечи, к примеру если тень той стороны была знач больше minRP или наоборот
 //0.2 добвить возможность увеличения колич контрактов, если сделка показывает прибыль и прошла (movedDealPos) ка константа, кот можно рандомизировать
@@ -43,14 +42,14 @@ public class ConditionsOpen {
             //==== условие в рост и дальше в снижение
             if ((candle.getOpen() - candle.getLow()) < DateProviders.StaticData.minRP &&
                     (candle.getClose() - candle.getOpen()) > DateProviders.StaticData.minMove &&
-                    (candle.getClose() - candle.getOpen()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
+                    (candle.getClose() - candle.getOpen()) < DateProviders.StaticData.largeMove){
                 DateProviders.StaticData.isBuy = true;
                 ConditionsClose.markerExit.set(0,true);//первичное условие выхода по стопу
                 ConditionsClose.markerExit.set(1,true);//вторичное условие выхода за край свечи
                 return true;
             }else if ((candle.getHigh() - candle.getOpen()) < DateProviders.StaticData.minRP &&
                     (candle.getOpen() - candle.getClose()) > DateProviders.StaticData.minMove &&
-                    (candle.getOpen() - candle.getClose()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
+                    (candle.getOpen() - candle.getClose()) < DateProviders.StaticData.largeMove){
                 DateProviders.StaticData.isBuy = false;
                 ConditionsClose.markerExit.set(0,true);
                 ConditionsClose.markerExit.set(1,true);
@@ -117,58 +116,64 @@ public class ConditionsOpen {
             System.out.println("В List<RunCounting.Candle> candleList недостаточно свечей для расчета условия в conditionThree ConditionsOpen");
             return false;
         }
-        if ((candle.getClose() - candle.getOpen()) >= DateProviders.StaticData.bodyMove &&
-                (candle.getHigh() - candle.getClose()) <= DateProviders.StaticData.reverseShadow &&
-                (candle.getOpen() - candle.getLow()) >= DateProviders.StaticData.mainShadow &&
-                isMin(StaticData.candleList,StaticData.rangeExtremum,candle) ||
-                (candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
-                        (candle.getHigh() - candle.getOpen()) <= DateProviders.StaticData.reverseShadow &&
-                        (candle.getClose() - candle.getLow()) >= DateProviders.StaticData.mainShadow &&
-                        isMin(StaticData.candleList,StaticData.rangeExtremum,candle)){
-            return true;
-        }else if((candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
-                (candle.getClose() - candle.getLow()) <= DateProviders.StaticData.reverseShadow &&
-                (candle.getHigh() - candle.getOpen()) >= DateProviders.StaticData.mainShadow  &&
-                isMax(StaticData.candleList,StaticData.rangeExtremum,candle) ||
-                (candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
-                        (candle.getOpen() - candle.getLow()) < DateProviders.StaticData.reverseShadow &&
-                        (candle.getHigh() - candle.getClose()) > DateProviders.StaticData.mainShadow &&
-                        isMax(StaticData.candleList,StaticData.rangeExtremum,candle)) {
-            return true;
+        if (markerRandomOrDefaultOpen.get(3)){
+            if ((candle.getClose() - candle.getOpen()) >= DateProviders.StaticData.bodyMove &&
+                    (candle.getHigh() - candle.getClose()) <= DateProviders.StaticData.reverseShadow &&
+                    (candle.getOpen() - candle.getLow()) >= DateProviders.StaticData.mainShadow &&
+                    isMin(StaticData.candleList,StaticData.rangeExtremum,candle) ||
+                    (candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
+                            (candle.getHigh() - candle.getOpen()) <= DateProviders.StaticData.reverseShadow &&
+                            (candle.getClose() - candle.getLow()) >= DateProviders.StaticData.mainShadow &&
+                            isMin(StaticData.candleList,StaticData.rangeExtremum,candle)){
+                return true;
+            }else if((candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
+                    (candle.getClose() - candle.getLow()) <= DateProviders.StaticData.reverseShadow &&
+                    (candle.getHigh() - candle.getOpen()) >= DateProviders.StaticData.mainShadow  &&
+                    isMax(StaticData.candleList,StaticData.rangeExtremum,candle) ||
+                    (candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
+                            (candle.getOpen() - candle.getLow()) < DateProviders.StaticData.reverseShadow &&
+                            (candle.getHigh() - candle.getClose()) > DateProviders.StaticData.mainShadow &&
+                            isMax(StaticData.candleList,StaticData.rangeExtremum,candle)) {
+                return true;
+            }
         }
         return false;
     }
 
     //===условие входа по пин бару, не менять зависимость conditionSeven
     private static boolean conditionFourth(RunCounting.Candle candle){
-        if ((candle.getClose() - candle.getOpen()) >= DateProviders.StaticData.bodyMove &&
-                (candle.getHigh() - candle.getClose()) <= DateProviders.StaticData.reverseShadow &&
-                (candle.getOpen() - candle.getLow()) >= DateProviders.StaticData.mainShadow ||
-                (candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
-                        (candle.getHigh() - candle.getOpen()) <= DateProviders.StaticData.reverseShadow &&
-                        (candle.getClose() - candle.getLow()) >= DateProviders.StaticData.mainShadow){
-            return true;
-        }else if((candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
-                (candle.getClose() - candle.getLow()) <= DateProviders.StaticData.reverseShadow &&
-                (candle.getHigh() - candle.getOpen()) >= DateProviders.StaticData.mainShadow ||
-                (candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
-                        (candle.getOpen() - candle.getLow()) < DateProviders.StaticData.reverseShadow &&
-                        (candle.getHigh() - candle.getClose()) > DateProviders.StaticData.mainShadow) {
-            return true;
+        if (markerRandomOrDefaultOpen.get(4)){
+            if ((candle.getClose() - candle.getOpen()) >= DateProviders.StaticData.bodyMove &&
+                    (candle.getHigh() - candle.getClose()) <= DateProviders.StaticData.reverseShadow &&
+                    (candle.getOpen() - candle.getLow()) >= DateProviders.StaticData.mainShadow ||
+                    (candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
+                            (candle.getHigh() - candle.getOpen()) <= DateProviders.StaticData.reverseShadow &&
+                            (candle.getClose() - candle.getLow()) >= DateProviders.StaticData.mainShadow){
+                return true;
+            }else if((candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
+                    (candle.getClose() - candle.getLow()) <= DateProviders.StaticData.reverseShadow &&
+                    (candle.getHigh() - candle.getOpen()) >= DateProviders.StaticData.mainShadow ||
+                    (candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
+                            (candle.getOpen() - candle.getLow()) < DateProviders.StaticData.reverseShadow &&
+                            (candle.getHigh() - candle.getClose()) > DateProviders.StaticData.mainShadow) {
+                return true;
+            }
         }
         return false;
     }
 
     //===условие входа по доджи, но с явным выделением направления тела
     private static boolean conditionFive(RunCounting.Candle candle){
-        if ((candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
-                ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
-                && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()){
-            return true;
-        }else if ((candle.getOpen() - candle.getClose()) > DateProviders.StaticData.bodyMove &&
-                ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
-                && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()){
-            return true;
+        if (markerRandomOrDefaultOpen.get(5)){
+            if ((candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
+                    ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
+                    && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()){
+                return true;
+            }else if ((candle.getOpen() - candle.getClose()) > DateProviders.StaticData.bodyMove &&
+                    ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
+                    && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()){
+                return true;
+            }
         }
         return false;
     }
@@ -180,16 +185,18 @@ public class ConditionsOpen {
         if (StaticData.candleList.size() < StaticData.rangeExtremum){
             return false;
         }
-        if ((candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
-                ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
-                && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen() &&
-                isMin(StaticData.candleList,StaticData.rangeExtremum,candle)){
-            return true;
-        }else if ((candle.getOpen() - candle.getClose()) > DateProviders.StaticData.bodyMove &&
-                ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
-                && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen() &&
-                isMax(StaticData.candleList,StaticData.rangeExtremum,candle)){
-            return true;
+        if (markerRandomOrDefaultOpen.get(6)){
+            if ((candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
+                    ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
+                    && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen() &&
+                    isMin(StaticData.candleList,StaticData.rangeExtremum,candle)){
+                return true;
+            }else if ((candle.getOpen() - candle.getClose()) > DateProviders.StaticData.bodyMove &&
+                    ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
+                    && ((candle.getOpen() - candle.getLow()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen() &&
+                    isMax(StaticData.candleList,StaticData.rangeExtremum,candle)){
+                return true;
+            }
         }
         return false;
     }
@@ -200,23 +207,25 @@ public class ConditionsOpen {
         if (StaticData.candleList.size() < 2){
             return false;
         }
-        if (conditionEight(StaticData.candleList.get(StaticData.candleList.size() - 1)) ||
-                conditionFourth(StaticData.candleList.get(StaticData.candleList.size() - 1))){
-            //==== условие в рост и дальше в снижение
-            if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getLow()) < DateProviders.StaticData.minRP &&
-                    (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) > DateProviders.StaticData.minMove &&
-                    (candle.getClose() - candle.getOpen()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
-                DateProviders.StaticData.isBuy = true;
-                ConditionsClose.markerExit.set(0,true);
-                ConditionsClose.markerExit.set(1,true);
-                return true;
-            }else if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getHigh() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) < DateProviders.StaticData.minRP &&
-                    (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose()) > DateProviders.StaticData.minMove &&
-                    (candle.getOpen() - candle.getClose()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
-                DateProviders.StaticData.isBuy = false;
-                ConditionsClose.markerExit.set(0,true);
-                ConditionsClose.markerExit.set(1,true);
-                return true;
+        if (markerRandomOrDefaultOpen.get(7)){
+            if (conditionEight(StaticData.candleList.get(StaticData.candleList.size() - 1)) ||
+                    conditionFourth(StaticData.candleList.get(StaticData.candleList.size() - 1))){
+                //==== условие в рост и дальше в снижение
+                if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getLow()) < DateProviders.StaticData.minRP &&
+                        (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) > DateProviders.StaticData.minMove &&
+                        (candle.getClose() - candle.getOpen()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
+                    DateProviders.StaticData.isBuy = true;
+                    ConditionsClose.markerExit.set(0,true);
+                    ConditionsClose.markerExit.set(1,true);
+                    return true;
+                }else if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getHigh() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) < DateProviders.StaticData.minRP &&
+                        (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose()) > DateProviders.StaticData.minMove &&
+                        (candle.getOpen() - candle.getClose()) < DateProviders.StaticData.largeMove && !DateProviders.StaticData.isOpenDeal){
+                    DateProviders.StaticData.isBuy = false;
+                    ConditionsClose.markerExit.set(0,true);
+                    ConditionsClose.markerExit.set(1,true);
+                    return true;
+                }
             }
         }
         return false;
@@ -237,7 +246,7 @@ public class ConditionsOpen {
     //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк. От открытия,и
     // до закрытия свечи прошло минимум minMove и не более largeMove. Похоже на условие conditionZero, но тут добавляется
     //если нет сильной тени в торону открытия сделки
-    private static boolean conditionNine(RunCounting.Candle candle){
+    private static boolean condition9(RunCounting.Candle candle){
         if (markerRandomOrDefaultOpen.get(9)){
             //==== условие в рост и дальше в снижение
             if ((candle.getOpen() - candle.getLow()) < DateProviders.StaticData.minRP &&
@@ -259,6 +268,35 @@ public class ConditionsOpen {
             }
         }
         return false;
+    }
+
+    //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк. От открытия,и
+    // до закрытия свечи прошло минимум minMove и не более largeMove, и если пред сделка была прибыльной для покупки
+    // прибыль по покупке для продажи прибыльная по продаже
+    //оСобенность этого условия в том, что нужно чтобы параллельно совершались сделки по conditionZero, чтобы система
+    //не создавала bug когда вход только в одну сторону к примеру в покупку
+    public static float condition10(float countContractsOrdinary){
+        float f = 0;
+        boolean isBuy = false;
+        boolean isFindFirstPosRes = false;
+        for (int i = 0; i < StaticData.commonListDeals.size() - 1; i++) {
+            if (!isFindFirstPosRes && StaticData.commonListDeals.get(i).getYieldsResult() > 0){
+                isFindFirstPosRes = true;
+                isBuy = StaticData.commonListDeals.get(i).isBuy();
+                continue;
+            }
+            if (StaticData.commonListDeals.get(i).getYieldsResult() > 0 &&
+                    StaticData.commonListDeals.get(i).isBuy() && isBuy){
+                f += StaticData.commonListDeals.get(i).getYieldsResult();
+            }else if (StaticData.commonListDeals.get(i).getYieldsResult() > 0 &&
+                    !StaticData.commonListDeals.get(i).isBuy() && !isBuy){
+                f += StaticData.commonListDeals.get(i).getYieldsResult();
+            }else if (StaticData.commonListDeals.get(i).getYieldsResult() > 0 &&
+                    StaticData.commonListDeals.get(i).isBuy() != isBuy){
+                isBuy = StaticData.commonListDeals.get(i).isBuy();
+            }
+        }
+        return f * countContractsOrdinary;
     }
 
     private static final ArrayConditions[] arrayConditions = new ArrayConditions[]{
@@ -309,7 +347,7 @@ public class ConditionsOpen {
             },
             new ArrayConditions() {
                 @Override public boolean conditions(Candle candle) {
-                    return conditionNine(candle);
+                    return condition9(candle);
                 }
             }
     };
