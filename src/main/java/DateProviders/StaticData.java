@@ -7,7 +7,7 @@ import RunCounting.Result;
 import java.util.*;
 
 public class StaticData {
-    public static float rangeYields = -5000000;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = 1650000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static float coefficientRiskManagement = 1.0f;//коэффиц который манипулирует с количесвом контрактов, если контрактов было 100, то умножение на этот коэф даст 30 констрактов
     public static List<Candle> candleList = new ArrayList<>();//лист для хранения свечей за пределенный промежуток времени
@@ -52,11 +52,12 @@ public class StaticData {
     public static List<Float> maxDescendingMoneyList = new ArrayList<>();//максимальная просадка
     public static float maxDescendingMoney = 0;//максимальная просадка
 
+    public static int countWorkingDays = 1; //===счетчик для подсчета прошедщих торговых дней
     public static float tempYieldsMaxLoss = 0.0f;//перемення для складывания результата торговли, с учетом ограичения убытков maxLossTotal
     public static Calendar dateForMaxLossTotal = Calendar.getInstance();//для того чтобы обнулять tempYields к примеру каждый месяц, если стоит интервал 1 месяц
     public static boolean isFirstEnterCalendar = true;//маркер который говорит, что мы первый раз пытаемся изменить Calendar
 
-    public static Date dateForIntervalYields = new Date();//дата когда считываем первую свечу для отображения доходности за опред интервал
+    public static Calendar calendarForIntervalYields = Calendar.getInstance();//когда считываем первую свечу для отображения доходности за опред интервал
     public static boolean isFirstCandleYields = true;
     public static float intervalYields = 0;//переменная доходности, которя учитывает разницу доходности, так как основаня переменная yields постоянно возрастает
 
@@ -84,10 +85,10 @@ public class StaticData {
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220318-220522.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220519-220519.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220513-220519.txt",
-            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220529.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220529.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220607-220607.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220606.txt",
-//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220605.txt",
+            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220329-220607.txt",
+//            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220530-220603.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220528-220605.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220525-220601.txt",
 //            "F:\\Программирование\\TestingHystoryCandle\\src\\main\\resources\\Si-Hour-220531-220601.txt",

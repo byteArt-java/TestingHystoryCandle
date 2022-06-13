@@ -8,11 +8,11 @@ public class SI{
     private static Random random = new Random();
 
     public static void randomSI(){
-        StaticData.limitStop = random.nextInt(50) + 30;
-        StaticData.minRP = random.nextInt(20)*10 + 10;//(minReversePrice)условие обратного движения по свече
-        StaticData.minMove = random.nextInt(150)*10 + 10;//сколько минимально должн пройти цена от открытия до закрытия
-        StaticData.largeMove = random.nextInt(400)*10 + 10;//сколько должно пройти, чтобы сработало 2 условие
-        DateProviders.StaticData.maxLossTotal = random.nextInt(990) - 1000;
+        StaticData.limitStop = random.nextInt(90) * 10 + 30;
+        StaticData.minRP = random.nextInt(100) * 10 + 10;//(minReversePrice)условие обратного движения по свече
+        StaticData.minMove = random.nextInt(700) * 10 + 10;//сколько минимально должн пройти цена от открытия до закрытия
+        StaticData.largeMove = random.nextInt(700)*10 + 10;//сколько должно пройти, чтобы сработало 2 условие
+        DateProviders.StaticData.maxLossTotal = random.nextInt(1500) - 1000;
 //        DateProviders.StaticData.minNakedSize = random.nextInt(10)*5 + 5;//минимальный диапазон для неголого закрытия
 //        DateProviders.StaticData.conditionExitLargeCandle = random.nextInt(100)*20;//параметр для выхода для больш свечи
 //        DateProviders.StaticData.bodyMove = random.nextInt(300) * 10 + 50;//сколько тело прошло от открыти до закрытия

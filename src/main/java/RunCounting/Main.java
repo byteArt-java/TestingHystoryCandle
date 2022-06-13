@@ -6,11 +6,11 @@ import DateProviders.StaticData;
 import Instruments.ATR;
 import Instruments.MovingAverage;
 import Instruments.TypeCandleParameter;
+import RandomParameterContracts.SI;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,11 +19,12 @@ public class Main {
     private final static Random random = new Random();
 
     public static void main(String[] args) throws Exception {
+
         testing(false,
                 false,100000,900000,
                 1, false,//показ доходности сложного процента за определ интервал
                 "W", 1,false,//показ доходности через опред интервал
-                false,"W",3,//ограничение потерь через опред интервал
+                false,"D",3,//ограничение потерь через опред интервал
                 DateProviders.StaticData.allPathFiles);
     }
 
@@ -46,7 +47,7 @@ public class Main {
                                 String... pathFiles) throws Exception {
         addDataToMap();
         for (String pathFile : pathFiles) {
-//            for (int i = 0; i < 20000; i++) {
+//            for (int i = 0; i < 200000; i++) {
                 //            String nameInstrument = pathFile.substring(60,62).toUpperCase();
 //            switch (nameInstrument){
 //                case "RI": RI.randomRI();break;
@@ -57,11 +58,13 @@ public class Main {
 //                case "SF": SF.randomSF();break;
 //            }
                 ConditionsOpen.markerRandomOrDefaultOpen.set(0,true);//установка условия входа по умолчанию
-                StaticData.limitStop = 199;
-                StaticData.minRP = 270;
-                StaticData.minMove = 90;
-                StaticData.largeMove = 1060;
-                DateProviders.StaticData.maxLossTotal = random.nextInt(990) - 1000;
+//                ConditionsOpen.markerRandomOrDefaultOpen.set(1,true);//установка условия входа по умолчанию
+                StaticData.limitStop = 199;//199
+                StaticData.minRP = 270;//270
+                StaticData.minMove = 90;//90
+                StaticData.largeMove = 1060;//1060
+                DateProviders.StaticData.maxLossTotal = -117;
+//                SI.randomSI();
 //            DateProviders.StaticData.minNakedSize = random.nextFloat();//минимальный диапазон для неголого закрытия
 //            DateProviders.StaticData.conditionExitLargeCandle = random.nextFloat();//параметр для выхода для больш свечи
                 processing(capital,spanInterval,isShowCompoundInterest,interval,countInterval,isShowIntervalYields,
@@ -91,11 +94,14 @@ public class Main {
         BufferedReader in = new BufferedReader(new FileReader(file));
         String line = "";
 
+
         StaticData.countContractsCompoundInterest = capital / DateProviders.StaticData.mapWarrantyProvision.get(codeForMaps);//кол.контрактов для сложного процента и с учетом spanMonth
         final float countContractsOrdinary = (capital / DateProviders.StaticData.mapWarrantyProvision.get(codeForMaps)) * StaticData.coefficientRiskManagement;//кол.контрактов для yields
 
         while ((line = in.readLine()) != null){
-            mainMethod(line,isShowIntervalYields,interval,countInterval,countContractsOrdinary,isShowCompoundInterest,spanInterval,warrantyProvision,isLimitLoss,intervalLimitLoss,countIntervalLimitLoss,countContractsOrdinary);
+            mainMethod(line,isShowIntervalYields,interval,countInterval,countContractsOrdinary,
+                    isShowCompoundInterest,spanInterval,warrantyProvision,isLimitLoss,intervalLimitLoss,
+                    countIntervalLimitLoss,countContractsOrdinary);
 
         }//while end
 
@@ -128,11 +134,7 @@ public class Main {
         }
         //===========================================================================================================
         if (isShowIntervalYields){
-            float clearYields = StaticData.yieldsCommons - (StaticData.intervalYields);
-            checkDateForIntervalYieldsAndCandle(StaticData.candleList.get(StaticData.candleList.size() - 1), interval,countInterval);
-            Date prevPeriod = StaticData.dateForIntervalYields;
-            Date toPeriod = StaticData.candleList.get(StaticData.candleList.size() - 1).getDateClose();
-            System.out.printf("Yields for period from (%s) to (%s) = %.3f\n",prevPeriod.toString(),toPeriod.toString(),clearYields * countContractsOrdinary);
+            showIntervalYields(true,StaticData.candleList.get(StaticData.candleList.size() - 1),interval,countInterval,countContractsOrdinary);
         }
 
 //        System.out.println(ConditionsOpen.conditionTen(countContractsOrdinary) + " доходность по условию ConditionsOpen.conditionTen()");
@@ -253,21 +255,45 @@ public class Main {
 
     //===показывает промежуточную прибыль в зависимости от заданного интервала
     //к примеру ("M",1) - это 1 месяц
-    private static void showIntervalYields(Candle candle,String interval,int count,float countContractsOrdinary){
-        interval = interval.toUpperCase();
-        String nameInterval = "";
-        long intervalMS = 0;
-        switch (interval){
-            case "M": intervalMS = 2592000000L * count ; nameInterval = "Month";break;
-            case "D": intervalMS = 86400000L * count;nameInterval = "Day";break;
-            case "W": intervalMS = 604800000L * count;nameInterval = "Week";break;
-            case "Y": intervalMS = 31104000000L * count;nameInterval = "Year";break;
-            default:
-                System.out.println("НЕВЕРНО УКАЗАН ИНТЕРВАЛ ДЛЯ ОТОБРАЖЕНИЯ ДОХОДНОСТИ");
-        }
-        if (!StaticData.isFirstCandleYields && candle.getDateClose().after(StaticData.dateForIntervalYields)){
-            Date prevPeriod = new Date(StaticData.dateForIntervalYields.getTime() - intervalMS);
-            Date toPeriod = new Date(candle.getDateClose().getTime());
+    private static void showIntervalYields(boolean isEnd,Candle candle,String interval,int count,float countContractsOrdinary){
+        if ((!StaticData.isFirstCandleYields &&
+                candle.getDateClose().after(StaticData.calendarForIntervalYields.getTime()) && !isEnd) ||
+                (candle.getDateClose().before(StaticData.calendarForIntervalYields.getTime()) && isEnd)){
+            Date prevPeriod = null;
+            switch (interval){
+                case "M": {
+                    StaticData.calendarForIntervalYields.add(Calendar.MONTH,-count);
+                    prevPeriod = new Date(StaticData.calendarForIntervalYields.getTime().getTime() + (3600000L * 6));
+                    StaticData.calendarForIntervalYields.add(Calendar.MONTH,count);
+                    break;
+                }
+                case "D": {
+                    StaticData.calendarForIntervalYields.add(Calendar.DATE,-count);
+                    prevPeriod = new Date(StaticData.calendarForIntervalYields.getTime().getTime() + (3600000L * 6));
+                    StaticData.calendarForIntervalYields.add(Calendar.DATE,count);
+                    break;
+                }
+                case "W": {
+                    StaticData.calendarForIntervalYields.add(Calendar.DATE,(-count * 7));
+                    prevPeriod = new Date(StaticData.calendarForIntervalYields.getTime().getTime() + (3600000L * 6));
+                    StaticData.calendarForIntervalYields.add(Calendar.DATE,(count * 7));
+                    break;
+                }
+                case "Y": {
+                    StaticData.calendarForIntervalYields.add(Calendar.YEAR,-count);
+                    prevPeriod = new Date(StaticData.calendarForIntervalYields.getTime().getTime() + (3600000L * 6));
+                    StaticData.calendarForIntervalYields.add(Calendar.YEAR,count);
+                    break;
+                }
+                default:
+                    System.out.println("НЕВЕРНО УКАЗАН ИНТЕРВАЛ ДЛЯ ОТОБРАЖЕНИЯ ДОХОДНОСТИ");
+            }
+            Date toPeriod = null;
+            if (isEnd){
+                toPeriod = new Date(candle.getDateClose().getTime());
+            }else {
+                toPeriod = new Date(candle.getDateClose().getTime() - (3600000L * 4));
+            }
             if (StaticData.yieldsCommons < 0 && StaticData.intervalYields < 0){
                 float clearYields = StaticData.yieldsCommons - (StaticData.intervalYields);
 //                System.out.println(clearYields * countContractsOrdinary);
@@ -280,10 +306,12 @@ public class Main {
                 StaticData.intervalYields = StaticData.yieldsCommons;
             }
         }
-        StaticData.dateForIntervalYields.setTime(StaticData.dateForIntervalYields.getTime() + intervalMS);
-        while (candle.getDateClose().after(StaticData.dateForIntervalYields)){
-            StaticData.dateForIntervalYields.setTime(StaticData.dateForIntervalYields.getTime() + intervalMS);
-        }
+//        long tempTime = StaticData.calendarForIntervalYields.getTime().getTime() + intervalMS;
+//        StaticData.calendarForIntervalYields.setTime(new Date(tempTime));
+//        while (candle.getDateClose().after(StaticData.calendarForIntervalYields.getTime())){
+//            StaticData.calendarForIntervalYields.setTime(new Date(StaticData.calendarForIntervalYields.getTime().
+//                    getTime() + intervalMS));
+//        }
     }
 
     private static void analyzeMaxFailDeals(float result,Candle candle){
@@ -329,13 +357,17 @@ public class Main {
         StaticData.commonListDeals.add(new Result(result,StaticData.isBuy));
     }
 
-    private static void method1(boolean isShowIntervalYields,Candle candle,String interval,int countInterval,float countContractsOrdinary){
+    private static void checkIntervalYields(boolean isShowIntervalYields, Candle candle, String interval,
+                                            int countInterval, float countContractsOrdinary,
+                                            int countIntervalLimitLoss) throws ParseException {
         if (StaticData.isFirstCandleYields && isShowIntervalYields){
-            StaticData.dateForIntervalYields.setTime(candle.getDateClose().getTime() - 3600000L);//уменьшаем на час, чтобы до начала дня отображалась доходность
-            showIntervalYields(candle,interval,countInterval,countContractsOrdinary);
+            StaticData.calendarForIntervalYields = findNextInterval(candle,interval,countInterval);
+            showIntervalYields(false,candle,interval,countInterval,countContractsOrdinary);
             StaticData.isFirstCandleYields = false;
-        }else if (candle.getDateClose().after(StaticData.dateForIntervalYields) && isShowIntervalYields){
-            showIntervalYields(candle,interval,countInterval,countContractsOrdinary);
+        }else if (candle.getDateClose().after(StaticData.calendarForIntervalYields.getTime()) &&
+                isShowIntervalYields && StaticData.countWorkingDays > countIntervalLimitLoss){
+            showIntervalYields(false,candle,interval,countInterval,countContractsOrdinary);
+            StaticData.calendarForIntervalYields = findNextInterval(candle,interval,countInterval);
         }
     }
 
@@ -389,7 +421,11 @@ public class Main {
                 }
             }
         }
-        return (a + (StaticData.slipPage));
+        if (typeCountingResult.equals(TypeCountingResult.CLEARDAYS)){
+            return a;
+        }else {
+            return (a + (StaticData.slipPage));
+        }
     }
 
     //commonYields = -200;  tempYields = 0;  maxLoss = -290;  F
@@ -442,6 +478,8 @@ public class Main {
 
         Candle candle = new Candle(array[1], date, Float.parseFloat(array[4]), Float.parseFloat(array[5]), Float.parseFloat(array[6]), Float.parseFloat(array[7]), Integer.parseInt(array[8]));
 
+        if (!StaticData.candleList.isEmpty() && checkNextDays(array)) StaticData.countWorkingDays++;
+
         //==находим след интервал для ограничения убытка, если к примеру прошла неделя, то начало каждого понед обнуляем доходность чтобы она не уходила ниже maxLossTotal
         changeCalendarForMaxLossTotal(candle,isLimitLoss,intervalLimitLoss,countIntervalLimitLoss);
 
@@ -452,8 +490,12 @@ public class Main {
 
         //=подготовка статических данных для отображения доходности за определенный промежуток времени и отобр доходности
         //method1
-        method1(isShowIntervalYields,candle,interval,countInterval,countContractsOrdinary);
+        checkIntervalYields(isShowIntervalYields,candle,interval,countInterval,countContractsOrdinary,countIntervalLimitLoss);
         //===============================================================================================================
+
+        //===обнуляем countWorkingDays, если он больше заданного интервала
+        if (StaticData.countWorkingDays > countIntervalLimitLoss) StaticData.countWorkingDays = 1;
+
         //передвигаем дату для сложного процента
         if (StaticData.isFirstCandle && isShowCompoundInterest){
 //                    totalMonth = 2592000000L * spanInterval;//промежуток месяц
@@ -466,31 +508,29 @@ public class Main {
 
         //====тут очищаем стэк если начался новый день, и закрываем позицию за пред день, если не были закрыты
         if (StaticData.candleList.size() > 0){
-            if (Integer.parseInt(StaticData.candleList.get(StaticData.candleList.size() - 1).getDateClose().toString().substring(8,10)) != Integer.parseInt(array[2].substring(6,8))){
-                if (StaticData.isOpenDeal){
-                    float result = 0.0f;
-                    //method3
-                    result = countingResult(TypeCountingResult.CLEARDAYS,candle);
+            if (checkNextDays(array) && StaticData.isOpenDeal){
+                float result = 0.0f;
+                //method3
+                result = countingResult(TypeCountingResult.CLEARDAYS,candle);
 
-                    //===логика максимальных неудачных последовательных сделок
-                    analyzeMaxFailDeals(result,candle);
-                    //========================================================
+                //===логика максимальных неудачных последовательных сделок
+                analyzeMaxFailDeals(result,candle);
+                //========================================================
 
-                    StaticData.yieldsCommons = endDay(result,isLimitLoss);
+                StaticData.yieldsCommons = endDay(result,isLimitLoss);
 
-                    print("Доход со сделки = ",result);
-                    //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации  и spanMonth
-                    //method7
-                    method7(isShowCompoundInterest,candle,warrantyProvision,result);
-                    //=============================================================================
+                print("Доход со сделки = ",result);
+                //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации  и spanMonth
+                //method7
+                method7(isShowCompoundInterest,candle,warrantyProvision,result);
+                //=============================================================================
 
-                    //===тут мы выстраиваем логику подсчета максимальной просадки
-                    countMaxDescendingMoney(result * countContractsOrdinary,isLimitLoss,ordinaryCountContracts);
-                    //===========================================================
-                    //===кладем результат сделки в Лист с отриц результатом или полож результатом, а тажк е кладем в любом случае в лист общий
-                    posAndNegList(result);
-                    //========================================================================
-                }
+                //===тут мы выстраиваем логику подсчета максимальной просадки
+                countMaxDescendingMoney(result * countContractsOrdinary,isLimitLoss,ordinaryCountContracts);
+                //===========================================================
+                //===кладем результат сделки в Лист с отриц результатом или полож результатом, а тажк е кладем в любом случае в лист общий
+                posAndNegList(result);
+                //========================================================================
             }
         }
 
@@ -507,10 +547,10 @@ public class Main {
         //все возможные выходы из сделки
         if (!StaticData.candleList.isEmpty()){
 
-            //проверка если открыта уже сделка и идет встречная сделка то переворачиваемся
-            if (reverseDeal(candle,isLimitLoss,isShowCompoundInterest,countContractsOrdinary,warrantyProvision,ordinaryCountContracts)){
-                System.out.println("Перевернутая сделка " + candle.toString());
-            }
+//            //проверка если открыта уже сделка и идет встречная сделка то переворачиваемся
+//            if (reverseDeal(candle,isLimitLoss,isShowCompoundInterest,countContractsOrdinary,warrantyProvision,ordinaryCountContracts)){
+//                System.out.println("Перевернутая сделка " + candle.toString());
+//            }
 
             //условие выхода по стопу
             if (StaticData.countCandleOpenPosition <= 1 && ConditionsClose.
@@ -608,6 +648,7 @@ public class Main {
             for (int i = 0; i < ConditionsOpen.length; i++) {
                 if (ConditionsOpen.markerRandomOrDefaultOpen.get(i)){
                     if (ConditionsOpen.getCondition(i,candle)){
+                        System.out.println(ConditionsOpen.getCondition(i,candle) + "=" + i);
                         StaticData.open = candle.getClose();
                         StaticData.isOpenDeal = true;//сделка открыта
                         break;
@@ -625,25 +666,6 @@ public class Main {
             StaticData.candleList.remove(0);
         }
     }
-
-    private static void checkDateForIntervalYieldsAndCandle(Candle candle,String interval,int count){
-        if (StaticData.dateForIntervalYields.after(candle.getDateClose())){
-            interval = interval.toUpperCase();
-            String nameInterval = "";
-            long intervalMS = 0;
-            switch (interval){
-                case "M": intervalMS = 2592000000L * count ; nameInterval = "Month";break;
-                case "D": intervalMS = 86400000L * count;nameInterval = "Day";break;
-                case "W": intervalMS = 604800000L * count;nameInterval = "Week";break;
-                case "Y": intervalMS = 31104000000L * count;nameInterval = "Year";break;
-                default:
-                    System.out.println("НЕВЕРНО УКАЗАН ИНТЕРВАЛ ДЛЯ ОТОБРАЖЕНИЯ ДОХОДНОСТИ");
-            }
-            intervalMS = intervalMS - 3600000L;
-            StaticData.dateForIntervalYields.setTime(StaticData.dateForIntervalYields.getTime() - intervalMS);
-        }
-    }
-
     private static void clearStaticField(){
         StaticData.candleList.clear();
         StaticData.commonListDeals.clear();
@@ -671,6 +693,7 @@ public class Main {
         StaticData.countContractsCompoundInterest = 0;
         StaticData.yieldsCompoundInterest = 0;
         StaticData.totalIntervalCompoundInterest = 0;
+        StaticData.countWorkingDays = 1;
     }
 
     private static void changeCalendarForMaxLossTotal(Candle candle,boolean isLimitLoss,String intervalLimitLoss,
@@ -686,7 +709,8 @@ public class Main {
             StaticData.dateForMaxLossTotal = findNextInterval(candle,intervalLimitLoss,countIntervalLimitLoss);
             StaticData.isFirstEnterCalendar = false;
         }
-        if (candle.getDateClose().after(StaticData.dateForMaxLossTotal.getTime())){
+        if (candle.getDateClose().after(StaticData.dateForMaxLossTotal.getTime())
+                && StaticData.countWorkingDays > countIntervalLimitLoss){
             StaticData.dateForMaxLossTotal = findNextInterval(candle,intervalLimitLoss,countIntervalLimitLoss);
             StaticData.tempYieldsMaxLoss = 0;
         }
@@ -711,14 +735,19 @@ public class Main {
                 break;
             }
             case "W": {
-                while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY){
-                    calendar.add(Calendar.DATE,1);
+                if (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY){
+                    while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY){
+                        calendar.add(Calendar.DATE,1);
+                    }
+                }else {
+                    calendar.add(Calendar.DATE,countIntervalLimitLoss * 7);
                 }
-                calendar.add(Calendar.DATE,countIntervalLimitLoss * 7);
                 break;
             }
             case "D": {
-                calendar.add(Calendar.DATE,countIntervalLimitLoss);
+                while (calendar.getTime().before(candle.getDateClose())){
+                    calendar.add(Calendar.DATE,countIntervalLimitLoss);
+                }
                 break;
             }
             default:
@@ -761,5 +790,12 @@ public class Main {
             }
         }
         return false;
+    }
+
+    private static boolean checkNextDays(String[] array){
+        int oldDay = Integer.parseInt(StaticData.candleList.get(StaticData.candleList.size() - 1).getDateClose().
+                toString().substring(8,10));
+        int currentDay = Integer.parseInt(array[2].substring(6,8));
+        return oldDay != currentDay;
     }
 }
