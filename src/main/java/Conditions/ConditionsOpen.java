@@ -37,7 +37,7 @@ public class ConditionsOpen {
 
     //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк. От открытия,и
     // до закрытия свечи прошло минимум minMove и не более largeMove
-    private static boolean conditionZero(RunCounting.Candle candle){
+    private static boolean condition0(RunCounting.Candle candle){
         if (markerRandomOrDefaultOpen.get(0)){
             //==== условие в рост и дальше в снижение
             if ((candle.getOpen() - candle.getLow()) < DateProviders.StaticData.minRP &&
@@ -59,7 +59,7 @@ public class ConditionsOpen {
         return false;
     }
     //входим, если на предыд свече было сильное движение, и она закрылась норм. Без сильных теней и не голой с какой либо из сторон не менее minNakedSize пунктов
-    private static boolean conditionOne(RunCounting.Candle candle){
+    private static boolean condition1(RunCounting.Candle candle){
         if (markerRandomOrDefaultOpen.get(1)){
             //==== условие в рост и дальше в снижение
             if ((candle.getClose() - candle.getOpen()) > DateProviders.StaticData.largeMove &&
@@ -85,7 +85,7 @@ public class ConditionsOpen {
         return false;
     }
     //входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк. и не голой с какой либо из сторон не менее minNakedSize пунктов
-    private static boolean conditionTwo(RunCounting.Candle candle){
+    private static boolean condition2(RunCounting.Candle candle){
         if (markerRandomOrDefaultOpen.get(2)){
             //==== условие в рост и дальше в снижение
             if ((StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getLow()) < DateProviders.StaticData.minRP &&
@@ -111,9 +111,9 @@ public class ConditionsOpen {
 
     //===условие входа по пин бару и с учетом последний свечей. К примеру шло нисходящее движение и разворотный наверх пин бар
     //который пробил минимум, самой минимальной свечи.
-    private static boolean conditionThree(RunCounting.Candle candle){
+    private static boolean condition3(RunCounting.Candle candle){
         if (DateProviders.StaticData.candleList.size() < StaticData.rangeExtremum){
-            System.out.println("В List<RunCounting.Candle> candleList недостаточно свечей для расчета условия в conditionThree ConditionsOpen");
+//            System.out.println("В List<RunCounting.Candle> candleList недостаточно свечей для расчета условия в conditionThree ConditionsOpen");
             return false;
         }
         if (markerRandomOrDefaultOpen.get(3)){
@@ -125,6 +125,9 @@ public class ConditionsOpen {
                             (candle.getHigh() - candle.getOpen()) <= DateProviders.StaticData.reverseShadow &&
                             (candle.getClose() - candle.getLow()) >= DateProviders.StaticData.mainShadow &&
                             isMin(StaticData.candleList,StaticData.rangeExtremum,candle)){
+                ConditionsClose.markerExit.set(0,true);//первичное условие выхода по стопу
+                ConditionsClose.markerExit.set(1,true);//вторичное условие выхода за край свечи
+                DateProviders.StaticData.isBuy = true;
                 return true;
             }else if((candle.getOpen() - candle.getClose()) >= DateProviders.StaticData.bodyMove &&
                     (candle.getClose() - candle.getLow()) <= DateProviders.StaticData.reverseShadow &&
@@ -134,6 +137,9 @@ public class ConditionsOpen {
                             (candle.getOpen() - candle.getLow()) < DateProviders.StaticData.reverseShadow &&
                             (candle.getHigh() - candle.getClose()) > DateProviders.StaticData.mainShadow &&
                             isMax(StaticData.candleList,StaticData.rangeExtremum,candle)) {
+                ConditionsClose.markerExit.set(0,true);//первичное условие выхода по стопу
+                ConditionsClose.markerExit.set(1,true);//вторичное условие выхода за край свечи
+                DateProviders.StaticData.isBuy = false;
                 return true;
             }
         }
@@ -141,7 +147,7 @@ public class ConditionsOpen {
     }
 
     //===условие входа по пин бару, не менять зависимость conditionSeven
-    private static boolean conditionFourth(RunCounting.Candle candle){
+    private static boolean condition4(RunCounting.Candle candle){
         if (markerRandomOrDefaultOpen.get(4)){
             if ((candle.getClose() - candle.getOpen()) >= DateProviders.StaticData.bodyMove &&
                     (candle.getHigh() - candle.getClose()) <= DateProviders.StaticData.reverseShadow &&
@@ -163,7 +169,7 @@ public class ConditionsOpen {
     }
 
     //===условие входа по доджи, но с явным выделением направления тела
-    private static boolean conditionFive(RunCounting.Candle candle){
+    private static boolean condition5(RunCounting.Candle candle){
         if (markerRandomOrDefaultOpen.get(5)){
             if ((candle.getClose() - candle.getOpen()) > DateProviders.StaticData.bodyMove &&
                     ((candle.getHigh() - candle.getClose()) * DateProviders.StaticData.coefficientBS) >= candle.getClose() - candle.getOpen()
@@ -181,7 +187,7 @@ public class ConditionsOpen {
 
     //===условие входа по дожи, но с явным выделением направления тела и с учетом последний свечей.
     // К примеру шло нисходящее движение и разворотный наверх дожи который пробил минимум, самой минимальной свечи.
-    private static boolean conditionSix(RunCounting.Candle candle){//int rangeList-диапазон расчета экстремумов тз Листа
+    private static boolean condition6(RunCounting.Candle candle){//int rangeList-диапазон расчета экстремумов тз Листа
         if (StaticData.candleList.size() < StaticData.rangeExtremum){
             return false;
         }
@@ -203,13 +209,13 @@ public class ConditionsOpen {
 
     //===входим либо,если предыд свеча закрылась и она сходила в одну из сторон не более чем на minRP пунк.,
     //но перед этим свеча закрылась либо по дожи, либо по пин бару
-    private static boolean conditionSeven(RunCounting.Candle candle){//int rangeList-диапазон расчета экстремумов тз Листа
+    private static boolean condition7(RunCounting.Candle candle){//int rangeList-диапазон расчета экстремумов тз Листа
         if (StaticData.candleList.size() < 2){
             return false;
         }
         if (markerRandomOrDefaultOpen.get(7)){
-            if (conditionEight(StaticData.candleList.get(StaticData.candleList.size() - 1)) ||
-                    conditionFourth(StaticData.candleList.get(StaticData.candleList.size() - 1))){
+            if (condition8(StaticData.candleList.get(StaticData.candleList.size() - 1)) ||
+                    condition4(StaticData.candleList.get(StaticData.candleList.size() - 1))){
                 //==== условие в рост и дальше в снижение
                 if ((DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getLow()) < DateProviders.StaticData.minRP &&
                         (DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getClose() - DateProviders.StaticData.candleList.get(StaticData.candleList.size()  - 1).getOpen()) > DateProviders.StaticData.minMove &&
@@ -232,7 +238,7 @@ public class ConditionsOpen {
     }
 
     //===условие входа по доджи, но без явныго выделения направления тела.Зависимость от conditionSeven.не менять.
-    private static boolean conditionEight(RunCounting.Candle candle){
+    private static boolean condition8(RunCounting.Candle candle){
         if (((candle.getHigh() - candle.getClose()) * 3) > (candle.getClose() - candle.getOpen()) &&
                 ((candle.getOpen() - candle.getLow()) * 3) > (candle.getClose() - candle.getOpen())){
             return true;
@@ -302,47 +308,47 @@ public class ConditionsOpen {
     private static final ArrayConditions[] arrayConditions = new ArrayConditions[]{
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
-                    return conditionZero(candle);
+                    return condition0(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
-                    return conditionOne(candle);
+                    return condition1(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
-                    return conditionTwo(candle);
+                    return condition2(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
-                    return conditionThree(candle);
+                    return condition3(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
-                    return conditionFourth(candle);
+                    return condition4(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
-                    return conditionFive(candle);
+                    return condition5(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(RunCounting.Candle candle) {
-                    return conditionSix(candle);
+                    return condition6(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(Candle candle) {
-                    return conditionSeven(candle);
+                    return condition7(candle);
                 }
             },
             new ArrayConditions() {
                 @Override public boolean conditions(Candle candle) {
-                    return conditionEight(candle);
+                    return condition8(candle);
                 }
             },
             new ArrayConditions() {
@@ -369,7 +375,7 @@ public class ConditionsOpen {
     //находим минимальный экстремум из списка и сравниваем с текущей свечой
     private static boolean isMin(List<RunCounting.Candle> list,int rangeList,RunCounting.Candle candle){
         float min = Integer.MAX_VALUE;
-        for (int i = list.size(); i > (list.size() - rangeList); i--) {
+        for (int i = list.size() - 2; i > (list.size() - rangeList); i--) {
             if (list.get(i).getLow() < min){
                 min = list.get(i).getLow();
             }
@@ -383,7 +389,7 @@ public class ConditionsOpen {
     //находим максимальный экстремум из списка и сравниваем с текущей свечой
     private static boolean isMax(List<RunCounting.Candle> list,int rangeList,RunCounting.Candle candle){
         float max = Integer.MIN_VALUE;
-        for (int i = list.size(); i > (list.size() - rangeList); i--) {
+        for (int i = list.size() - 2; i > (list.size() - rangeList); i--) {
             if (list.get(i).getHigh() > max){
                 max = list.get(i).getHigh();
             }

@@ -7,7 +7,7 @@ import RunCounting.Result;
 import java.util.*;
 
 public class StaticData {
-    public static float rangeYields = 1650000;//предел прибыли, после которого идет вывод на экран и запись в файл
+    public static float rangeYields = -5000000;//предел прибыли, после которого идет вывод на экран и запись в файл
 
     public static float coefficientRiskManagement = 1.0f;//коэффиц который манипулирует с количесвом контрактов, если контрактов было 100, то умножение на этот коэф даст 30 констрактов
     public static List<Candle> candleList = new ArrayList<>();//лист для хранения свечей за пределенный промежуток времени
@@ -41,7 +41,7 @@ public class StaticData {
     public static int rangeExtremum = 18;//int rangeExtremum-диапазон расчета экстремумов из Листа
     public static int rangeCandleForTrend = 2;//диапазон с конца листа, за этот диапазон смотрится и находится точка экстремума, после которой определяется тренд
     public static int rangeCandleForATR = 5;//диапазон с конца листа, за этот диапазон смотрится и находится ATR-среднее истинное значение-в каком диапазоне ходит цена внутри этогоо диапазона
-    public static int rangeCandleForMA = 18;//диапазон с конца листа, за этот диапазон смотрится и находится средняя скользящая в каком диапазоне
+    public static int rangeCandleForMA = 5;//диапазон с конца листа, за этот диапазон смотрится и находится средняя скользящая в каком диапазоне
 
 
     public static List<Deal> positiveRes = new ArrayList<>();//list для хранения проведенных положительных сделок

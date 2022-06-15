@@ -23,8 +23,8 @@ public class Main {
         testing(false,
                 false,100000,900000,
                 1, false,//показ доходности сложного процента за определ интервал
-                "W", 1,false,//показ доходности через опред интервал
-                false,"D",3,//ограничение потерь через опред интервал
+                "D", 1,true,//показ доходности через опред интервал
+                true,"D",1,//ограничение потерь через опред интервал
                 DateProviders.StaticData.allPathFiles);
     }
 
@@ -57,14 +57,21 @@ public class Main {
 //                case "BR": BR.randomBR();break;
 //                case "SF": SF.randomSF();break;
 //            }
+//                ConditionsOpen.markerRandomOrDefaultOpen.set(3,true);//установка условия входа по умолчанию
                 ConditionsOpen.markerRandomOrDefaultOpen.set(0,true);//установка условия входа по умолчанию
-//                ConditionsOpen.markerRandomOrDefaultOpen.set(1,true);//установка условия входа по умолчанию
                 StaticData.limitStop = 199;//199
                 StaticData.minRP = 270;//270
                 StaticData.minMove = 90;//90
                 StaticData.largeMove = 1060;//1060
-                DateProviders.StaticData.maxLossTotal = -117;
-//                SI.randomSI();
+                DateProviders.StaticData.maxLossTotal = -69;
+//
+//            DateProviders.StaticData.bodyMove = 170;//сколько тело прошло от открыти до закрытия
+//            DateProviders.StaticData.mainShadow = 120;//основная тень одной из сторон пин бара
+//            DateProviders.StaticData.reverseShadow = 850;//обратная тень одной из сторон пин бара
+//            DateProviders.StaticData.coefficientBS = 2;//коэффициент тела > относительно тени
+//            StaticData.rangeExtremum = 9;//диапазон с конца листа, за этот диапазон смотрится и находится экстремум цены макс. и минимальной
+
+//            SI.randomSI();
 //            DateProviders.StaticData.minNakedSize = random.nextFloat();//минимальный диапазон для неголого закрытия
 //            DateProviders.StaticData.conditionExitLargeCandle = random.nextFloat();//параметр для выхода для больш свечи
                 processing(capital,spanInterval,isShowCompoundInterest,interval,countInterval,isShowIntervalYields,
@@ -181,8 +188,8 @@ public class Main {
 //            System.out.println(Arrays.toString(new List[]{DateProviders.StaticData.countFailSequenceList}));
 
         StringBuilder total = new StringBuilder();
-        total.append(String.format("Yields = %.4f. Стоп = %.4f. minRP = %.4f. minMove = %.4f. largeMove = %.4f. maxLossTotal = %.4f. minNakedSize = %.4f. slipPage = %.4f. conditionExitLargeCandle = %.4f.  bodyMove = %.4f. mainShadow = %.4f. reverseShadow  = %.4f. coefficientBS = %.4f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. Отриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.Максимальное кол. неудачных сделок = %d.Среднее количество неудачных сделок = %.3f.\n",
-                StaticData.yieldsCommons,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.maxLossTotal,StaticData.minNakedSize,StaticData.slipPage,StaticData.conditionExitLargeCandle,StaticData.bodyMove,StaticData.mainShadow,StaticData.reverseShadow,StaticData.coefficientBS,file.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg,StaticData.countFailSequence,averageFailSequence));
+        total.append(String.format("Yields = %.4f. Стоп = %.4f. minRP = %.4f. minMove = %.4f. largeMove = %.4f. maxLossTotal = %.4f. minNakedSize = %.4f. \nslipPage = %.4f. conditionExitLargeCandle = %.4f.  bodyMove = %.4f. mainShadow = %.4f. \nreverseShadow  = %.4f. coefficientBS = %.4f. Путь = %s. Макс.просадка = %.3f. Полож сделок = %d. \nОтриц сделок = %d. Средняя прибыль на сделку = %.2f. Средняя убыток на сделку = %.2f.\nМаксимальное кол. неудачных сделок = %d.Среднее количество неудачных сделок = %.3f.\n",
+                StaticData.yieldsCommons,StaticData.limitStop,StaticData.minRP,StaticData.minMove,StaticData.largeMove,StaticData.maxLossTotal,StaticData.minNakedSize,StaticData.slipPage,StaticData.conditionExitLargeCandle,StaticData.bodyMove,StaticData.mainShadow,StaticData.reverseShadow,StaticData.coefficientBS,file.substring(60),f1,StaticData.positiveRes.size(),StaticData.negativeRes.size(),optionalPos,optionalNeg,StaticData.countFailSequence,averageFailSequence)).append("===========================");
 
         //==вычитываем начальный капитал из заработанного, чтобы получит чистую прибыль, если прибыль с учетом капитализации
         if (isShowCompoundInterest){
@@ -295,7 +302,7 @@ public class Main {
                 toPeriod = new Date(candle.getDateClose().getTime() - (3600000L * 4));
             }
             if (StaticData.yieldsCommons < 0 && StaticData.intervalYields < 0){
-                float clearYields = StaticData.yieldsCommons - (StaticData.intervalYields);
+                float clearYields = StaticData.yieldsCommons + (StaticData.intervalYields);
 //                System.out.println(clearYields * countContractsOrdinary);
                 System.out.printf("Yields for period from (%s) to (%s) = %.3f\n",prevPeriod.toString(),toPeriod.toString(),clearYields * countContractsOrdinary);
                 StaticData.intervalYields = StaticData.yieldsCommons;
@@ -428,19 +435,19 @@ public class Main {
         }
     }
 
-    //commonYields = -200;  tempYields = 0;  maxLoss = -290;  F
-    private static float checkMaxTotalLoss(float result, boolean isLimitLoss){//res = 100
+    private static float checkMaxTotalLoss(float result, boolean isLimitLoss){
         ConditionsClose.defaultSetListBooleanFromConditionClose();
         StaticData.isOpenDeal = false;
         StaticData.countCandleOpenPosition = 0;
         //==тут мы складываем додходность в перменную для того, чтобы ограничить убытки, если мы установили огранич убытка к примеру в -546 пунктов
-        if (isLimitLoss && StaticData.maxLossTotal > StaticData.tempYieldsMaxLoss){//-2000>500=false
+        if (isLimitLoss && StaticData.maxLossTotal > StaticData.tempYieldsMaxLoss){
             StaticData.tempYieldsMaxLoss = StaticData.tempYieldsMaxLoss + (result);
             return StaticData.yieldsCommons;
         }
         StaticData.tempYieldsMaxLoss = StaticData.tempYieldsMaxLoss + (result);
         return StaticData.yieldsCommons + result;
     }
+
 
     private static void method7(boolean isShowCompoundInterest,Candle candle,float warrantyProvision,float result){
         if (isShowCompoundInterest && candle.getDateClose().after(StaticData.dateFirstCandle)){
@@ -456,10 +463,14 @@ public class Main {
     }
 
 
-    private static float endDay(float result,boolean isLimit){
+    private static float endDay(int countIntervalLimitLoss,String intervalLimitLoss,float result,boolean isLimit){
         ConditionsClose.defaultSetListBooleanFromConditionClose();
         StaticData.countCandleOpenPosition = 0;
         StaticData.isOpenDeal = false;
+        if (StaticData.countWorkingDays > countIntervalLimitLoss && intervalLimitLoss.equals("D")){
+            StaticData.tempYieldsMaxLoss = 0;
+            return StaticData.yieldsCommons + result;
+        }
         //==тут мы складываем додходность в перменную для того, чтобы ограничить убытки, если мы установили огранич убытка к примеру в -546 пунктов
         StaticData.yieldsCommons = checkMaxTotalLoss(result, isLimit);
         return StaticData.yieldsCommons;
@@ -489,12 +500,12 @@ public class Main {
         //======================================================
 
         //=подготовка статических данных для отображения доходности за определенный промежуток времени и отобр доходности
-        //method1
-        checkIntervalYields(isShowIntervalYields,candle,interval,countInterval,countContractsOrdinary,countIntervalLimitLoss);
+        if (StaticData.countWorkingDays > countIntervalLimitLoss && intervalLimitLoss.equals("D") &&
+                checkNextDays(array)){
+        }else {
+            checkIntervalYields(isShowIntervalYields,candle,interval,countInterval,countContractsOrdinary,countIntervalLimitLoss);
+        }
         //===============================================================================================================
-
-        //===обнуляем countWorkingDays, если он больше заданного интервала
-        if (StaticData.countWorkingDays > countIntervalLimitLoss) StaticData.countWorkingDays = 1;
 
         //передвигаем дату для сложного процента
         if (StaticData.isFirstCandle && isShowCompoundInterest){
@@ -508,16 +519,19 @@ public class Main {
 
         //====тут очищаем стэк если начался новый день, и закрываем позицию за пред день, если не были закрыты
         if (StaticData.candleList.size() > 0){
-            if (checkNextDays(array) && StaticData.isOpenDeal){
+            if (checkNextDays(array)){
                 float result = 0.0f;
                 //method3
                 result = countingResult(TypeCountingResult.CLEARDAYS,candle);
+                StaticData.intervalYields += result;
+
+                showIntervalYields(true,candle,interval,countInterval,countContractsOrdinary);
 
                 //===логика максимальных неудачных последовательных сделок
                 analyzeMaxFailDeals(result,candle);
                 //========================================================
 
-                StaticData.yieldsCommons = endDay(result,isLimitLoss);
+                StaticData.yieldsCommons = endDay(countIntervalLimitLoss,intervalLimitLoss,result,isLimitLoss);
 
                 print("Доход со сделки = ",result);
                 //===тут считаем прибыль или убыток по сложному проценту с учетом капитализации  и spanMonth
@@ -531,6 +545,11 @@ public class Main {
                 //===кладем результат сделки в Лист с отриц результатом или полож результатом, а тажк е кладем в любом случае в лист общий
                 posAndNegList(result);
                 //========================================================================
+
+                //===обнуляем countWorkingDays, если он больше заданного интервала
+                if (StaticData.countWorkingDays > countIntervalLimitLoss && intervalLimitLoss.equals("D")){
+                    StaticData.countWorkingDays = 1;
+                }
             }
         }
 
@@ -645,15 +664,10 @@ public class Main {
 
         //Проверка условия входа в сделку в Conditions.ConditionsOpen.List<Boolean> markerRandomOrDefaultOpen
         if (!StaticData.isOpenDeal){
-            for (int i = 0; i < ConditionsOpen.length; i++) {
-                if (ConditionsOpen.markerRandomOrDefaultOpen.get(i)){
-                    if (ConditionsOpen.getCondition(i,candle)){
-                        System.out.println(ConditionsOpen.getCondition(i,candle) + "=" + i);
-                        StaticData.open = candle.getClose();
-                        StaticData.isOpenDeal = true;//сделка открыта
-                        break;
-                    }
-                }
+            if (ConditionsOpen.getCondition(0,candle)){
+//                        System.out.println("Вход");
+                StaticData.open = candle.getClose();
+                StaticData.isOpenDeal = true;//сделка открыта
             }
         }
     }
@@ -712,7 +726,6 @@ public class Main {
         if (candle.getDateClose().after(StaticData.dateForMaxLossTotal.getTime())
                 && StaticData.countWorkingDays > countIntervalLimitLoss){
             StaticData.dateForMaxLossTotal = findNextInterval(candle,intervalLimitLoss,countIntervalLimitLoss);
-            StaticData.tempYieldsMaxLoss = 0;
         }
     }
 
